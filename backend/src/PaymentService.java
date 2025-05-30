@@ -38,7 +38,6 @@ public class PaymentService {
         }
         
         try {
-            // In a real application, you would integrate with a payment processor like Stripe
             // For now, we'll simulate the payment processing
             boolean paymentSuccessful = simulateCardPayment(paymentRequest, amount);
             

@@ -1,32 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 type ScrollDirection = 'up' | 'down';
 export const useScrollDirection = () => {
   const [scrollDirection, setScrollDirection] = useState<ScrollDirection>('up');
   const [prevOffset, setPrevOffset] = useState(0);
   const [isAtTop, setIsAtTop] = useState(true);
-  useEffect(() => {
+  const updateScrollDirection = useCallback(() => {
     const threshold = 10;
+    const scrollY = window.scrollY;
+    setIsAtTop(scrollY < threshold);
+    if (Math.abs(scrollY - prevOffset) < threshold) {
+      return;
+    }
+    setScrollDirection(scrollY > prevOffset ? 'down' : 'up');
+    setPrevOffset(scrollY > 0 ? scrollY : 0);
+  }, [prevOffset]);
+  useEffect(() => {
     let ticking = false;
-    const updateScrollDirection = () => {
-      const scrollY = window.scrollY;
-      setIsAtTop(scrollY < threshold);
-      if (Math.abs(scrollY - prevOffset) < threshold) {
-        ticking = false;
-        return;
-      }
-      setScrollDirection(scrollY > prevOffset ? 'down' : 'up');
-      setPrevOffset(scrollY > 0 ? scrollY : 0);
-      ticking = false;
-    };
-    const onScroll = () => {
+    const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(updateScrollDirection);
+        window.requestAnimationFrame(() => {
+          updateScrollDirection();
+          ticking = false;
+        });
         ticking = true;
       }
     };
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [prevOffset]);
+    window.addEventListener('scroll', handleScroll, {
+      passive: true
+    });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [updateScrollDirection]);
   return {
     scrollDirection,
     isAtTop

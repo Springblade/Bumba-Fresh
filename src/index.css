@@ -1,192 +1,89 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @layer base {
-  html {
-    @apply antialiased;
-    scroll-behavior: smooth;
+  /* Enhanced section spacing */
+  section {
+    @apply py-16 lg:py-32;
   }
-  body {
-    @apply text-gray-900 bg-white;
-  }
-  /* Typography */
+  /* Fluid typography */
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+    font-size: clamp(2rem, 5vw, 4rem);
+    @apply font-bold tracking-tight;
   }
   h2 {
-    @apply text-3xl md:text-4xl font-bold tracking-tight;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    @apply font-semibold text-gray-900 mb-4 tracking-tight;
   }
   h3 {
-    @apply text-2xl md:text-3xl font-semibold;
+    font-size: clamp(1.25rem, 3vw, 1.875rem);
+    @apply font-semibold text-gray-800 mb-3;
   }
-  h4 {
-    @apply text-xl md:text-2xl font-semibold;
+  /* Enhanced focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
   }
-  h5 {
-    @apply text-lg md:text-xl font-semibold;
-  }
-  h6 {
-    @apply text-base md:text-lg font-semibold;
-  }
-  p {
-    @apply text-base text-gray-600 leading-relaxed;
-  }
-  small {
-    @apply text-sm text-gray-500;
+  /* Improved link styles */
+  .text-link {
+    @apply text-primary-600 underline underline-offset-4 hover:text-primary-700 transition-colors focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded;
   }
 }
+/* Enhanced animations */
 @layer components {
-  /* Container */
-  .container {
-    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  .hover-lift {
+    @apply transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg;
   }
-  /* Section spacing */
-  section {
-    @apply py-12 md:py-16 lg:py-24;
+  .button-hover {
+    @apply transition-all duration-300 hover:shadow-md active:scale-[0.98];
   }
-  /* Focus styles */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500;
+  .input-focus {
+    @apply transition-shadow duration-200 focus:ring-2 focus:ring-primary-500/20;
   }
-  /* Interactive element base styles */
-  .interactive {
-    @apply transition-all duration-200 focus-ring;
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
 }
-
-/* Container sizing */
-.container {
-  width: 100%;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+/* Enhanced loading states */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
-
-/* Section spacing */
-section {
-  @apply py-12 md:py-16 lg:py-24 w-full relative overflow-hidden;
+.loading-skeleton {
+  @apply relative overflow-hidden bg-gray-100;
 }
-
-/* Button variants */
-.btn {
-  @apply inline-flex items-center justify-center text-base font-medium transition-all duration-300;
+.loading-skeleton::after {
+  content: "";
+  @apply absolute inset-0;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0,
+    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: shimmer 2s infinite;
 }
-.btn-primary {
-  @apply btn bg-primary-600 text-white rounded-full hover:bg-primary-700 hover:scale-[1.02] px-6 py-3 shadow-lg shadow-primary-600/20 active:scale-[0.98];
+/* Enhanced form validation states */
+.form-field-error {
+  @apply animate-shake border-error-300;
 }
-.btn-secondary {
-  @apply btn border-2 border-primary-600 text-primary-600 rounded-full hover:bg-primary-50 px-6 py-3 active:scale-[0.98];
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
-.btn-ghost {
-  @apply btn text-primary-600 hover:text-primary-800 underline underline-offset-4 px-6 py-3;
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
-
-/* Card styles */
-.card {
-  @apply bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
+/* Image loading styles */
+.img-wrapper {
+  @apply relative overflow-hidden bg-gray-100;
 }
-.card-image {
-  @apply rounded-2xl overflow-hidden;
+.img-wrapper img {
+  @apply transition-opacity duration-300;
 }
-.card-image img {
-  @apply w-full h-full object-cover transition-transform duration-500 hover:scale-105;
+.img-wrapper img:not([src]) {
+  @apply opacity-0;
 }
-
-/* Navigation */
-.nav-link {
-  @apply text-base font-medium transition-colors duration-200 relative;
-}
-.nav-link::after {
-  content: '';
-  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300;
-}
-.nav-link:hover::after {
-  @apply w-full;
-}
-.nav-link.active {
-  @apply text-primary-600 font-semibold;
-}
-.nav-link.active::after {
-  @apply w-full;
-}
-
-/* Header styles */
-.header-shadow {
-  @apply shadow-md shadow-gray-100/50;
-}
-
-/* Cart badge */
-.cart-badge {
-  @apply absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center bg-primary-600 text-white text-[10px] font-semibold rounded-full transition-transform duration-300 transform scale-100 hover:scale-110;
-}
-
-/* Feature card */
-.feature-card {
-  @apply p-6 rounded-2xl transition-all duration-300 hover:bg-primary-50;
-}
-.feature-icon {
-  @apply mb-6 p-4 rounded-2xl bg-gradient-to-br text-white transform transition-all duration-500 group-hover:scale-110 shadow-lg relative overflow-hidden;
-}
-
-/* Testimonial card */
-.testimonial-card {
-  @apply p-8 bg-white rounded-3xl border border-primary-100 hover:border-primary-300 transition-all duration-300 hover:-translate-y-2 shadow-xl shadow-primary-100/30;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-.animate-float {
-  animation: float 5s ease-in-out infinite;
-}
-
-/* Typography */
-h2 {
-  @apply text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900;
-}
-h3 {
-  @apply text-xl md:text-2xl font-semibold text-gray-800;
-}
-p {
-  @apply text-base text-gray-600 leading-relaxed;
-}
-.section-description {
-  @apply text-lg text-gray-600 max-w-2xl mx-auto text-center;
-}
-
-/* Price cards */
-.price-card {
-  @apply h-full bg-white rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 hover:scale-[1.03];
-}
-.price-card-header {
-  @apply p-8 relative overflow-hidden;
-}
-.price-card-popular {
-  @apply border-2 border-primary-500 ring-4 ring-primary-100;
-}
-
-/* Blog cards */
-.blog-card {
-  @apply bg-white rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-2xl;
-}
-.blog-image {
-  @apply aspect-[3/2] relative overflow-hidden;
-}
-.blog-content {
-  @apply p-8;
+.img-wrapper img[src] {
+  @apply opacity-100;
 }

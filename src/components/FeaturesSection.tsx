@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClockIcon, HeartIcon, UtensilsIcon } from 'lucide-react';
+import { ClockIcon, HeartIcon, UtensilsIcon, ArrowRightIcon } from 'lucide-react';
 const FeaturesSection = () => {
   const features = [{
     icon: <ClockIcon className="h-8 w-8" />,
@@ -17,37 +17,68 @@ const FeaturesSection = () => {
     description: 'Delicious recipes developed by expert chefs.',
     gradient: 'from-accent-500 to-accent-600'
   }];
+  const steps = [{
+    number: '01',
+    title: 'Choose Your Plan',
+    description: 'Select between single meals or weekly subscription'
+  }, {
+    number: '02',
+    title: 'Customize Your Meals',
+    description: 'Pick your favorite dishes from our rotating menu'
+  }, {
+    number: '03',
+    title: 'Enjoy Fresh Delivery',
+    description: 'Get your meals delivered right to your doorstep'
+  }];
   return <section className="w-full bg-white py-24" id="features">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {features.map((feature, index) => <div key={index} className="group flex flex-col items-center text-center feature-card">
-              <div className={`feature-icon ${feature.gradient}`}>
-                {feature.icon}
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-800">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>)}
-        </div>
-        <div className="mt-24 bg-primary-50 rounded-3xl p-8 md:p-12 lg:p-16">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="md:w-2/3">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                Ready to transform your mealtime?
-              </h2>
-              <p className="text-gray-600 mb-0 md:pr-12">
-                Join thousands who have revolutionized their dining experience
-                with Bumba's convenient meal delivery service.
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Features Column */}
+          <div>
+            <h2 className="text-3xl font-bold mb-12">Why Choose Bumba</h2>
+            <div className="space-y-12">
+              {features.map((feature, index) => <div key={index} className="flex items-start space-x-6">
+                  <div className={`p-4 rounded-2xl bg-gradient-to-br ${feature.gradient} text-white`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>)}
             </div>
-            <div className="md:w-1/3 flex justify-center md:justify-end">
-              <button className="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-medium transition-all duration-300 shadow-lg shadow-primary-600/20 transform hover:translate-y-[-2px] button-hover-effect">
-                Get Started Today
-              </button>
+          </div>
+          {/* How It Works Column */}
+          <div>
+            <h2 className="text-3xl font-bold mb-12">How It Works</h2>
+            <div className="relative">
+              {/* Connecting Line */}
+              <div className="absolute left-[29px] top-[45px] bottom-[45px] w-0.5 bg-gray-100"></div>
+              <div className="space-y-12">
+                {steps.map((step, index) => <div key={index} className="flex items-start space-x-6">
+                    <div className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold text-lg border-4 border-white relative z-10">
+                      {step.number}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                        {step.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>)}
+              </div>
+            </div>
+            <div className="mt-12">
+              <a href="/menu" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium transition-colors text-decoration-line underline underline-offset-4 hover:underline-offset-2">
+                Browse our menu
+                <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </a>
             </div>
           </div>
         </div>

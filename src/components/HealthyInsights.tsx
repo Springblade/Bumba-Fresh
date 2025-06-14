@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { CalendarIcon, ClockIcon, ArrowRightIcon } from 'lucide-react';
 import GradientText from './GradientText';
 const HealthyInsights = () => {
@@ -33,18 +33,18 @@ const HealthyInsights = () => {
     authorRole: 'Health Coach',
     authorAvatar: 'https://randomuser.me/api/portraits/women/33.jpg'
   }];
-  return <section className="w-full bg-white py-24" id="insights">
+  return <section className="w-full bg-white" id="insights">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-4">
+        <h2 className="text-center mb-4">
           <GradientText variant="primary">Latest Healthy Insights</GradientText>
         </h2>
         <p className="text-gray-600 text-center mb-16 max-w-2xl mx-auto text-lg">
           Expert tips and advice for a healthier lifestyle.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {articles.map((article, index) => <div key={index} className="group blog-card">
+          {articles.map(article => <div key={article.title} className="group blog-card">
               <div className="aspect-[3/2] relative overflow-hidden">
-                <img src={article.image} alt={article.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img src={article.image} alt={article.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-300" />
                 <div className="absolute top-4 left-4">
                   <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-medium rounded-full">

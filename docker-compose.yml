@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # Frontend React Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: production
+    container_name: bumba-fresh-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - bumba-network
+
+  # Backend API Service (placeholder for future implementation)
+  backend:
+    image: node:18-alpine
+    container_name: bumba-fresh-backend
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - DATABASE_URL=postgresql://bumba_user:bumba_pass@postgres:5432/bumba_fresh
+      - JWT_SECRET=your-super-secure-jwt-secret-key-change-in-production
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run start:prod"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - bumba-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bumba-fresh-postgres
+    environment:
+      - POSTGRES_DB=bumba_fresh
+      - POSTGRES_USER=bumba_user
+      - POSTGRES_PASSWORD=bumba_pass
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    networks:
+      - bumba-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bumba_user -d bumba_fresh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: bumba-fresh-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - bumba-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bumba-fresh-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - bumba-network
+
+  # Development Database Admin (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bumba-fresh-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@bumbafresh.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - bumba-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  bumba-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

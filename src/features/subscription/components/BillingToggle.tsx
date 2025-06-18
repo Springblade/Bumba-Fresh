@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BillingFrequency } from '../types';
+import { BillingFrequency } from '../../../types/shared';
 interface BillingToggleProps {
   billingFrequency: BillingFrequency;
   onChange: (frequency: BillingFrequency) => void;

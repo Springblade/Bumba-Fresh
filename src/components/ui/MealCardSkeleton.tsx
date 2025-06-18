@@ -38,19 +38,21 @@ export const MealCardSkeleton = () => {
           </div>
         </div>
       </div>
-      <style jsx>{`
-        .shimmer {
-          animation: shimmer 2s infinite linear;
-          background-size: 400% 100%;
-        }
-        @keyframes shimmer {
-          0% {
-            background-position: 200% 0;
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .shimmer {
+            animation: shimmer 2s infinite linear;
+            background-size: 400% 100%;
           }
-          100% {
-            background-position: -200% 0;
+          @keyframes shimmer {
+            0% {
+              background-position: 200% 0;
+            }
+            100% {
+              background-position: -200% 0;
+            }
           }
-        }
-      `}</style>
+        `
+      }} />
     </div>;
 };

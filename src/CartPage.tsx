@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
-// ... existing imports
-import { MealSelectionModal } from '../components/MealSelectionModal';
+import { useNavigate, Link } from 'react-router-dom';
+import { Utensils as UtensilsIcon, Check as CheckIcon } from 'lucide-react';
+import { MealSelectionModal } from './components/MealSelectionModal';
+import { useCart } from './context/CartContext';
+import { useAuth } from './context/AuthContext';
+import { Button } from './components/ui/Button';
+import { CheckoutLayout } from './components/checkout/CheckoutLayout';
+import { OrderSummary } from './components/checkout/OrderSummary';
+import { CartItem } from './components/checkout/CartItem';
+
+interface SubscriptionItem {
+  id?: number;
+  planName: string;
+  weeks: number;
+  mealsByWeek: string[][];
+  totalCost: number;
+  type: 'subscription';
+}
+
 const CartPage = () => {
   const {
     items,
@@ -11,11 +28,13 @@ const CartPage = () => {
   } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeSubscription, setActiveSubscription] = useState<any>(null);
-  const handleCustomizeMeals = (subscription: any) => {
+  const [activeSubscription, setActiveSubscription] = useState<SubscriptionItem | null>(null);
+  
+  const handleCustomizeMeals = (subscription: SubscriptionItem) => {
     setActiveSubscription(subscription);
     setIsModalOpen(true);
   };
+  
   const handleSaveMealSelections = (selectedMeals: string[]) => {
     if (!activeSubscription) return;
     // Update the subscription with selected meals
@@ -28,6 +47,11 @@ const CartPage = () => {
     setIsModalOpen(false);
     setActiveSubscription(null);
   };
+  
+  const handleCheckout = () => {
+    navigate('/checkout/payment');
+  };
+  
   // ... existing empty cart check
   return <>
       <CheckoutLayout currentStep="cart" sidebar={<div className="space-y-4">
@@ -44,7 +68,7 @@ const CartPage = () => {
               </p>}
           </div>}>
         <div className="space-y-4">
-          {items.map(item => <div key={item.id || item.planName}>
+          {items.map((item: any) => <div key={item.id || item.planName}>
               {item.type === 'subscription' ? <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -82,3 +106,5 @@ const CartPage = () => {
     }} onSave={handleSaveMealSelections} mealsPerWeek={activeSubscription.planName === 'Family Plan' ? 4 : 3} currentSelections={activeSubscription.mealsByWeek[0]} planName={activeSubscription.planName} />}
     </>;
 };
+
+export default CartPage;

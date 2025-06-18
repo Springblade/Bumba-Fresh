@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, ErrorInfo } from 'react';
 import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
 import { Button } from './ui/Button';
 interface Props {

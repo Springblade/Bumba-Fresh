@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useToast } from '../../../hooks/useToast';
+import { useToasts as useToast } from '../../../hooks/useToasts';
+
 export const useSubscriptionActions = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
   const pauseSubscription = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -15,16 +15,19 @@ export const useSubscriptionActions = () => {
         description: 'Your subscription has been paused successfully.',
         type: 'success'
       });
+      return true;
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to pause subscription. Please try again.',
         type: 'error'
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
+  
   const resumeSubscription = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -34,16 +37,19 @@ export const useSubscriptionActions = () => {
         description: 'Your subscription has been resumed successfully.',
         type: 'success'
       });
+      return true;
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to resume subscription. Please try again.',
         type: 'error'
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
+  
   const cancelSubscription = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -65,6 +71,7 @@ export const useSubscriptionActions = () => {
       setIsLoading(false);
     }
   }, [toast]);
+  
   const updatePaymentMethod = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -74,16 +81,19 @@ export const useSubscriptionActions = () => {
         description: 'Your payment method has been updated successfully.',
         type: 'success'
       });
+      return true;
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to update payment method. Please try again.',
         type: 'error'
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
+  
   return {
     isLoading,
     pauseSubscription,

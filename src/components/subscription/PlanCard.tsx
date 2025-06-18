@@ -36,9 +36,11 @@ export const PlanCard = memo(({
     monthlyDiscount
   } = useMemo(() => {
     const weeklyTotal = mealsPerWeek * pricePerMeal;
-    const monthlyTotal = billingFrequency === 'monthly' ? weeklyTotal * 4 * 0.9 : weeklyTotal * 4;
+    const monthlyTotal = weeklyTotal * 4;
+    const discountedMonthlyTotal = billingFrequency === 'monthly' ? monthlyTotal * 0.9 : monthlyTotal;
+    
     return {
-      finalTotal: billingFrequency === 'monthly' ? monthlyTotal / 4 : weeklyTotal,
+      finalTotal: discountedMonthlyTotal,
       monthlyDiscount: billingFrequency === 'monthly' ? '10%' : null
     };
   }, [mealsPerWeek, pricePerMeal, billingFrequency]);
@@ -66,9 +68,7 @@ export const PlanCard = memo(({
               <span className="text-4xl font-bold text-gray-900">
                 ${finalTotal.toFixed(2)}
               </span>
-              <span className="text-gray-600">
-                /{billingFrequency === 'monthly' ? 'month' : 'week'}
-              </span>
+              <span className="text-gray-600">/month</span>
             </div>
             <p className="text-sm text-gray-600 mt-2">
               ${pricePerMeal.toFixed(2)} per meal
@@ -106,3 +106,7 @@ export const PlanCard = memo(({
       </motion.div>;
 });
 PlanCard.displayName = 'PlanCard';
+
+
+
+

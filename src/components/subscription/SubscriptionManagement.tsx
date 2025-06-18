@@ -64,9 +64,21 @@ export const SubscriptionManagement = () => {
     }
   }, []);
   if (!subscription) {
-    return <EmptyState icon={<RefreshCwIcon className="w-12 h-12" />} title="No Active Subscription" description="You don't have an active subscription. Subscribe now to get fresh, healthy meals delivered to your door." action={<Button onClick={() => navigate('/subscribe')} size="lg">
-            Explore Our Plans
-          </Button>} />;
+    // Create a custom empty state since EmptyState doesn't support icon or action props
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="relative mb-8">
+          <RefreshCwIcon className="w-16 h-16 text-primary-600" />
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-3">No Active Subscription</h2>
+        <p className="text-gray-600 max-w-md mb-8">
+          You don't have an active subscription. Subscribe now to get fresh, healthy meals delivered to your door.
+        </p>
+        <Button onClick={() => navigate('/subscribe')} size="lg">
+          Explore Our Plans
+        </Button>
+      </div>
+    );
   }
   return <div className="space-y-8">
       {/* Subscription Overview */}

@@ -1,25 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef, memo } from 'react';
-import { Search as SearchIcon, Filter as FilterIcon, Utensils as UtensilsIcon, Sparkles as SparklesIcon, User as UserIcon } from 'lucide-react';
+import { useCallback, useEffect, useState, memo } from 'react';
+import { Utensils as UtensilsIcon, Sparkles as SparklesIcon, User as UserIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useDebounce } from '../hooks/useDebounce';
 import FilterModal from './FilterModal';
-import MealCard from './MealCard';
+import MealCard from '../features/meals/components/MealCard';
 import GradientText from './GradientText';
 import { useMealFilter } from '../hooks/useMealFilter';
 import { FilterSystem } from './meals/FilterSystem';
-type Meal = {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  price: string;
+import { BaseMeal } from '../types/shared';
+import { MealCardSkeleton } from './ui/MealCardSkeleton';
+
+type Meal = BaseMeal & {
   prepTime: string;
   calories: string;
-  tags: string[];
-  category: string[];
-  overlayBadge?: 'Popular' | 'New' | 'Bestseller' | 'Limited Time';
-  isNew?: boolean;
+  category: string[]; // Make sure this is not optional
 };
+
 export const meals: Meal[] = [{
   id: 1,
   name: 'Herb-Roasted Chicken',
@@ -254,36 +249,9 @@ export const meals: Meal[] = [{
   category: ['popular', 'high-protein'],
   overlayBadge: 'Limited Time'
 }];
-const SkeletonLoader = () => <>
-    {[1, 2, 3, 4].map(i => <div key={i} className="bg-white rounded-xl shadow-md animate-pulse h-[500px]">
-        <div className="bg-gray-200 aspect-[4/3] rounded-t-xl" />
-        <div className="p-6 space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-          <div className="flex gap-2">
-            <div className="h-6 bg-gray-200 rounded w-20" />
-            <div className="h-6 bg-gray-200 rounded w-20" />
-          </div>
-        </div>
-      </div>)}
-  </>;
-const MealCardSkeleton = () => <div className="bg-white rounded-xl shadow-md animate-pulse h-[500px]">
-    <div className="bg-gray-200 aspect-[4/3] rounded-t-xl" />
-    <div className="p-6 space-y-4">
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
-      <div className="h-4 bg-gray-200 rounded w-full" />
-      <div className="h-4 bg-gray-200 rounded w-2/3" />
-      <div className="flex gap-2">
-        <div className="h-6 bg-gray-200 rounded w-20" />
-        <div className="h-6 bg-gray-200 rounded w-20" />
-      </div>
-    </div>
-  </div>;
+
 const OurMeals = () => {
-  const {
-    addToCart
-  } = useCart();
+  const { addToCart } = useCart();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [recentlyAdded, setRecentlyAdded] = useState<number[]>([]);
   const [likedMeals, setLikedMeals] = useState<number[]>(() => {
@@ -295,6 +263,7 @@ const OurMeals = () => {
       return [];
     }
   });
+
   // Use the custom hook for filtering
   const {
     paginatedMeals,
@@ -310,6 +279,7 @@ const OurMeals = () => {
     setPage,
     isLoading
   } = useMealFilter(meals, 12);
+
   // Memoize handlers
   const handleAddToCart = useCallback((meal: any) => {
     addToCart(meal);
@@ -318,9 +288,11 @@ const OurMeals = () => {
       setRecentlyAdded(prev => prev.filter(id => id !== meal.id));
     }, 1500);
   }, [addToCart]);
+
   const toggleLike = useCallback((id: number) => {
     setLikedMeals(current => current.includes(id) ? current.filter(mealId => mealId !== id) : [...current, id]);
   }, []);
+
   // Save liked meals to localStorage
   useEffect(() => {
     try {
@@ -329,7 +301,9 @@ const OurMeals = () => {
       console.error('Error saving liked meals:', error);
     }
   }, [likedMeals]);
-  return <section className="w-full pt-16 pb-20">
+
+  return (
+    <section className="w-full pt-16 pb-20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4" role="heading">
@@ -340,26 +314,43 @@ const OurMeals = () => {
             Choose from our wide selection of chef-crafted meals
           </p>
         </div>
-        <FilterSystem searchQuery={searchQuery} onSearchChange={setSearchQuery} activeFilter={activeQuickFilter} onFilterChange={setActiveQuickFilter} selectedFilters={selectedFilters} onOpenDetailedFilters={() => setIsFilterModalOpen(true)} quickFilters={[{
-        id: 'all',
-        label: 'All Meals',
-        icon: UtensilsIcon
-      }, {
-        id: 'new',
-        label: 'New',
-        icon: SparklesIcon
-      }, {
-        id: 'popular',
-        label: 'Most Popular',
-        icon: SparklesIcon
-      }, {
-        id: 'bestseller',
-        label: 'Bestsellers',
-        icon: UserIcon
-      }]} totalResults={totalResults} />
-        {/* Grid of meals */}
+        <FilterSystem 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          activeFilter={activeQuickFilter}
+          onFilterChange={setActiveQuickFilter}
+          selectedFilters={selectedFilters}
+          onOpenDetailedFilters={() => setIsFilterModalOpen(true)}
+          quickFilters={[{
+          id: 'all',
+          label: 'All Meals',
+          icon: UtensilsIcon
+        }, {
+          id: 'new',
+          label: 'New',
+          icon: SparklesIcon
+        }, {
+          id: 'popular',
+          label: 'Most Popular',
+          icon: SparklesIcon
+        }, {
+          id: 'bestseller',
+          label: 'Bestsellers',
+          icon: UserIcon
+        }]}
+          totalResults={totalResults} 
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {isLoading ? <MealCardSkeleton /> : paginatedMeals.map(meal => <MealCard key={meal.id} meal={meal} onAddToCart={handleAddToCart} onLike={toggleLike} isLiked={likedMeals.includes(meal.id)} recentlyAdded={recentlyAdded.includes(meal.id)} />)}
+          {isLoading ? <MealCardSkeleton /> : paginatedMeals.map(meal => (
+            <MealCard 
+              key={meal.id} 
+              meal={meal} 
+              onAddToCart={handleAddToCart} 
+              onLike={toggleLike} 
+              isLiked={likedMeals.includes(meal.id)} 
+              recentlyAdded={recentlyAdded.includes(meal.id)} 
+            />
+          ))}
         </div>
         {/* Pagination */}
         {totalPages > 1 && <div className="flex justify-center gap-2">
@@ -372,6 +363,16 @@ const OurMeals = () => {
           </div>}
         <FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} selectedFilters={selectedFilters} onFilterChange={setSelectedFilters} onReset={() => setSelectedFilters([])} />
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default memo(OurMeals);
+
+
+
+
+
+
+
+

@@ -1,16 +1,14 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDebounce } from './useDebounce';
-interface Meal {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  price: string;
-  tags: string[];
-  category: string[];
-  overlayBadge?: string;
-  isNew?: boolean;
-}
+import { BaseMeal } from '../types/shared';
+
+// Update to use the same Meal type
+type Meal = BaseMeal & {
+  prepTime: string;
+  calories: string;
+  category: string[]; // Not optional
+};
+
 export function useMealFilter(initialMeals: Meal[], itemsPerPage: number) {
   // States with memoized initial values
   const [searchQuery, setSearchQuery] = useState('');

@@ -1,12 +1,12 @@
 import React, { useState, Component } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UtensilsIcon, ArrowLeftIcon, Minus as MinusIcon, Plus as PlusIcon, Trash2Icon, CheckIcon, PackageIcon } from 'lucide-react';
+import { ArrowLeftIcon, Minus as MinusIcon, Plus as PlusIcon, Trash2Icon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
 import { OrderSummary } from '../components/checkout/OrderSummary';
 import { EmptyState } from '../components/ui/EmptyState';
+
 const CartPage = () => {
   const {
     items,
@@ -18,19 +18,35 @@ const CartPage = () => {
     user
   } = useAuth();
   const navigate = useNavigate();
+
   if (items.length === 0) {
-    return <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <EmptyState title="Your cart is empty" description="Looks like you haven't added any meals to your cart yet." icon={<UtensilsIcon className="w-12 h-12" />} action={<Button onClick={() => navigate('/menu')} size="lg">
-              Browse Menu
-            </Button>} />
-      </div>;
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <EmptyState 
+            title="Your cart is empty"
+            description="Looks like you haven't added any meals to your cart yet."
+          />
+          <Button 
+            variant="primary" 
+            className="mt-4"
+            onClick={() => navigate('/menu')}
+          >
+            Browse Menu
+          </Button>
+        </div>
+      </div>
+    );
   }
+
   // Calculate line item total
   const calculateLineTotal = (price: string, quantity: number) => {
     const priceNumber = parseFloat(price.replace('$', ''));
     return priceNumber * quantity;
   };
-  return <div className="min-h-screen bg-gray-50 py-12">
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
@@ -116,6 +132,8 @@ const CartPage = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default CartPage;

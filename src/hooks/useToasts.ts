@@ -1,10 +1,24 @@
 import { useToastContext } from '../context/ToastContext';
-import type { ToastProps } from '../context/ToastContext';
+import { ToastType } from '../context/ToastContext';
+
+export interface ToastOptions {
+  title: string;
+  description?: string;
+  type?: ToastType;
+  duration?: number;
+}
+
 export const useToasts = () => {
-  const {
-    addToast
-  } = useToastContext();
+  const context = useToastContext();
+  
+  if (!context) {
+    throw new Error("useToasts must be used within a ToastProvider");
+  }
+  
   return {
-    addToast: (toast: Omit<ToastProps, 'id'>) => addToast(toast)
+    toast: context.addToast
   };
 };
+
+// Add this export to make both naming conventions work
+export const useToast = useToasts;

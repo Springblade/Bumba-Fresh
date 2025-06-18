@@ -1,6 +1,7 @@
 import React from 'react';
 export const PageSkeletonLoader = () => {
-  return <div className="min-h-screen flex flex-col animate-pulse">
+  return (
+    <div className="min-h-screen flex flex-col animate-pulse">
       {/* Header */}
       <header className="w-full py-4 px-6 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -60,34 +61,37 @@ export const PageSkeletonLoader = () => {
         </div>
       </footer>
       {/* Shimmer Effect Overlay */}
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes shimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
           }
-          100% {
-            transform: translateX(100%);
+          .animate-pulse {
+            position: relative;
+            overflow: hidden;
           }
-        }
-        .animate-pulse {
-          position: relative;
-          overflow: hidden;
-        }
-        .animate-pulse::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.6) 50%,
-            rgba(255, 255, 255, 0) 100%
-          );
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
-    </div>;
+          .animate-pulse::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255, 255, 255, 0.6) 50%,
+              rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 2s infinite;
+          }
+        `
+      }} />
+    </div>
+  );
 };

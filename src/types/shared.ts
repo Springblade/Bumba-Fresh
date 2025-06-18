@@ -39,3 +39,22 @@ export interface AnimationConfig {
   delay?: number;
   ease?: number[];
 }
+
+// User related types
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  address?: Address;
+}
+
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country?: string;
+}
+
+// Add other types as needed

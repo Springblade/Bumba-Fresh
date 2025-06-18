@@ -1,5 +1,19 @@
 import React, { createContext, useContext } from 'react';
-import { MealItem, SubscriptionItem } from './types';
+import { CartMeal } from '../types/shared';
+
+// Define SubscriptionItem here since it's not directly available in shared.ts
+interface SubscriptionItem {
+  type: 'subscription';
+  planName: string;
+  weeks: number;
+  mealsByWeek: string[][];
+  totalCost: number;
+  billingFrequency: 'weekly' | 'monthly';
+}
+
+// Use CartMeal as MealItem for consistency
+type MealItem = CartMeal;
+
 interface CartState {
   items: (MealItem | SubscriptionItem)[];
   cartCount: number;

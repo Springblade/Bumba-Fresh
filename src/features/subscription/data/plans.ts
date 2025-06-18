@@ -1,8 +1,11 @@
 import { UtensilsIcon, GlobeIcon, BoxIcon, UserIcon, SparklesIcon, HeadphonesIcon, CrownIcon, PhoneIcon } from 'lucide-react';
+
 export type PlanFeature = {
   text: string;
   icon: typeof UtensilsIcon;
+  included: boolean;
 };
+
 export type Plan = {
   name: string;
   tagline: string;
@@ -10,34 +13,37 @@ export type Plan = {
   pricePerMeal: number;
   basePrice: string;
   weeklyTotal: number;
+  monthlyTotal: number;
   popular: boolean;
-  coreFeatures: PlanFeature[];
-  missingFeatures: string[];
+  features: Array<{
+    text: string;
+    included: boolean;
+  }>;
   tierColor: string;
   description: string;
 };
+
 export const plans: Plan[] = [{
   name: 'Basic',
   tagline: 'Perfect for trying out our service',
   mealsPerWeek: 3,
   pricePerMeal: 12.0,
   basePrice: '12.00',
-  weeklyTotal: 38.97,
+  weeklyTotal: 36.0,
+  monthlyTotal: 144.0,
   popular: false,
-  coreFeatures: [{
-    text: '3 meals per week',
-    icon: UtensilsIcon
-  }, {
-    text: 'Basic recipe selection',
-    icon: GlobeIcon
-  }, {
-    text: 'Standard delivery',
-    icon: BoxIcon
-  }, {
-    text: 'Basic meal customization',
-    icon: UserIcon
-  }],
-  missingFeatures: ['Premium recipes', 'Priority support', 'Advanced meal customization', 'Premium delivery slots', 'Exclusive recipes', '24/7 concierge support'],
+  features: [
+    { text: '3 meals per week', included: true },
+    { text: 'Basic recipe selection', included: true },
+    { text: 'Standard delivery', included: true },
+    { text: 'Basic meal customization', included: true },
+    { text: 'Premium recipes', included: false },
+    { text: 'Priority support', included: false },
+    { text: 'Advanced meal customization', included: false },
+    { text: 'Premium delivery slots', included: false },
+    { text: 'Exclusive recipes', included: false },
+    { text: '24/7 concierge support', included: false }
+  ],
   tierColor: 'secondary',
   description: 'Start your culinary journey with our essential plan'
 }, {
@@ -46,28 +52,19 @@ export const plans: Plan[] = [{
   mealsPerWeek: 4,
   pricePerMeal: 15.0,
   basePrice: '15.00',
-  weeklyTotal: 59.96,
+  weeklyTotal: 60.0,
+  monthlyTotal: 240.0,
   popular: true,
-  coreFeatures: [{
-    text: '4 meals per week',
-    icon: UtensilsIcon
-  }, {
-    text: 'Full recipe selection',
-    icon: GlobeIcon
-  }, {
-    text: 'Priority delivery',
-    icon: BoxIcon
-  }, {
-    text: 'Advanced meal customization',
-    icon: UserIcon
-  }, {
-    text: 'Premium recipes',
-    icon: SparklesIcon
-  }, {
-    text: 'Priority support',
-    icon: HeadphonesIcon
-  }],
-  missingFeatures: ['24/7 concierge support', 'Exclusive recipes'],
+  features: [
+    { text: '4 meals per week', included: true },
+    { text: 'Full recipe selection', included: true },
+    { text: 'Priority delivery', included: true },
+    { text: 'Advanced meal customization', included: true },
+    { text: 'Premium recipes', included: true },
+    { text: 'Priority support', included: true },
+    { text: '24/7 concierge support', included: false },
+    { text: 'Exclusive recipes', included: false }
+  ],
   tierColor: 'primary',
   description: 'Upgrade your dining experience with premium selections'
 }, {
@@ -76,34 +73,21 @@ export const plans: Plan[] = [{
   mealsPerWeek: 5,
   pricePerMeal: 18.0,
   basePrice: '18.00',
-  weeklyTotal: 84.95,
+  weeklyTotal: 90.0,
+  monthlyTotal: 360.0,
   popular: false,
-  coreFeatures: [{
-    text: '5 meals per week',
-    icon: UtensilsIcon
-  }, {
-    text: 'Full recipe selection',
-    icon: GlobeIcon
-  }, {
-    text: 'Premium delivery',
-    icon: BoxIcon
-  }, {
-    text: 'Complete meal customization',
-    icon: UserIcon
-  }, {
-    text: 'Premium recipes',
-    icon: SparklesIcon
-  }, {
-    text: 'Priority support',
-    icon: HeadphonesIcon
-  }, {
-    text: 'Exclusive recipes',
-    icon: CrownIcon
-  }, {
-    text: '24/7 concierge support',
-    icon: PhoneIcon
-  }],
-  missingFeatures: [],
+  features: [
+    { text: '5 meals per week', included: true },
+    { text: 'Full recipe selection', included: true },
+    { text: 'Premium delivery', included: true },
+    { text: 'Complete meal customization', included: true },
+    { text: 'Premium recipes', included: true },
+    { text: 'Priority support', included: true },
+    { text: 'Exclusive recipes', included: true },
+    { text: '24/7 concierge support', included: true }
+  ],
   tierColor: 'accent',
   description: 'Experience the finest dining with our signature offerings'
 }];
+
+

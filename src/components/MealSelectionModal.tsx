@@ -68,14 +68,20 @@ export const MealSelectionModal = ({
     if (selectedMeals.length !== mealsPerWeek) return;
     setIsSaving(true);
     try {
-      await onSave(selectedMeals);
+      // Convert meal IDs to meal names before saving
+      const selectedMealNames = selectedMeals.map(id => {
+        const meal = allMeals.find(m => m.id === id);
+        return meal ? meal.name : '';
+      }).filter(name => name !== '');
+      
+      await onSave(selectedMealNames);
       onClose();
     } catch (error) {
       setError('Failed to save meal selections. Please try again.');
     } finally {
       setIsSaving(false);
     }
-  }, [selectedMeals, mealsPerWeek, onSave, onClose]);
+  }, [selectedMeals, mealsPerWeek, onSave, onClose, allMeals]);
   if (error) {
     return <Dialog isOpen={isOpen} onClose={onClose} title="Error" description={error}>
         <ErrorState message={error} onRetry={() => setError(null)} />

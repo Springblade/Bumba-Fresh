@@ -1,61 +1,33 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarIcon, CheckIcon, ChevronRightIcon, AlertCircleIcon, XIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CheckIcon, ChevronRightIcon, AlertCircleIcon, XIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Button } from '../components/ui/Button';
 import GradientText from '../components/GradientText';
 import { meals } from '../components/OurMeals';
 import { plans } from '../data/subscriptionPlans';
+
 // Types
 type Week = 1 | 2 | 3 | 4;
 type WeeklyMeals = Record<Week, number[]>;
-interface Meal {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  price: string;
-  calories: string;
-  prepTime: string;
-  dietaryInfo: string[];
-}
-// Available meals data
-const allMeals: Meal[] = [{
-  id: 1,
-  name: 'Herb-Roasted Chicken',
-  description: 'Tender chicken with fresh herbs and seasonal vegetables',
-  image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6',
-  price: '$12.99',
-  calories: '480 cal',
-  prepTime: '25 min',
-  dietaryInfo: ['High Protein', 'Gluten Free']
-}, {
-  id: 2,
-  name: 'Mediterranean Bowl',
-  description: 'Quinoa base with roasted vegetables, feta, and tahini dressing',
-  image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
-  price: '$10.99',
-  calories: '380 cal',
-  prepTime: '15 min',
-  dietaryInfo: ['Vegetarian', 'Mediterranean']
-}
-// ... add more meals as needed
-];
+
 const ConfigureSubscriptionPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const {
-    addSubscriptionItem
-  } = useCart();
+  const { addSubscriptionItem } = useCart();
+  
   const planName = searchParams.get('plan');
   const billingFrequency = searchParams.get('billing') || 'weekly';
+
   // Get plan details from plans data
   const planDetails = useMemo(() => {
     const plan = plans.find(p => p.name === planName);
     if (!plan) return null;
+    
     const weeklyTotal = plan.mealsPerWeek * plan.pricePerMeal;
     const monthlyTotal = weeklyTotal * 4 * (billingFrequency === 'monthly' ? 0.9 : 1); // 10% discount for monthly
+    
     return {
       ...plan,
       weeklyTotal,
@@ -63,6 +35,7 @@ const ConfigureSubscriptionPage = () => {
       finalTotal: billingFrequency === 'monthly' ? monthlyTotal : weeklyTotal
     };
   }, [planName, billingFrequency]);
+
   // State
   const [activeWeek, setActiveWeek] = useState<Week>(1);
   const [selectedMeals, setSelectedMeals] = useState<WeeklyMeals>({
@@ -71,50 +44,75 @@ const ConfigureSubscriptionPage = () => {
     3: [],
     4: []
   });
+
   useEffect(() => {
     if (!planName) {
       navigate('/subscribe');
     }
   }, [planName, navigate]);
+
   // Handlers
   const handleMealSelection = (week: Week, mealId: number) => {
     setSelectedMeals(prev => {
       const weeklyMeals = prev[week];
       const isSelected = weeklyMeals.includes(mealId);
+      
       if (isSelected) {
         return {
           ...prev,
           [week]: weeklyMeals.filter(id => id !== mealId)
         };
       }
-      if (weeklyMeals.length >= planDetails.mealsPerWeek) return prev;
+      
+      // Add null check for planDetails
+      if (!planDetails || weeklyMeals.length >= planDetails.mealsPerWeek) return prev;
+      
       return {
         ...prev,
         [week]: [...weeklyMeals, mealId]
       };
     });
   };
+
   const handleProceedToCheckout = () => {
     if (!planDetails) return;
-    const isComplete = Object.values(selectedMeals).every(meals => meals.length === planDetails.mealsPerWeek);
+    
+    const isComplete = Object.values(selectedMeals).every(meals => 
+      meals.length === planDetails.mealsPerWeek
+    );
+    
     if (!isComplete) return;
-    const mealsByWeek = Object.values(selectedMeals).map(mealIds => mealIds.map(id => {
-      const meal = meals.find(m => m.id === id);
-      return meal?.name || '';
-    }));
+    
+    const mealsByWeek = Object.values(selectedMeals).map(mealIds => 
+      mealIds.map(id => {
+        const meal = meals.find(m => m.id === id);
+        return meal?.name || '';
+      })
+    );
+    
+    // Fix: Match the expected type for addSubscriptionItem
     addSubscriptionItem({
       planName: planName || '',
       weeks: billingFrequency === 'monthly' ? 4 : 1,
       mealsByWeek,
       totalCost: planDetails.finalTotal,
-      billingFrequency
+      // Remove billingFrequency if it's not in the expected type
+      // or use the proper property name as expected by the function
     });
+    
     navigate('/cart');
   };
-  // Computed values
-  const isWeekComplete = (week: Week) => selectedMeals[week].length === planDetails.mealsPerWeek;
-  const isAllWeeksComplete = Object.values(selectedMeals).every(meals => meals.length === planDetails.mealsPerWeek);
-  return <div className="min-h-screen bg-gray-50 py-12">
+
+  // Computed values with null checks
+  const isWeekComplete = (week: Week) => 
+    planDetails ? selectedMeals[week].length === planDetails.mealsPerWeek : false;
+    
+  const isAllWeeksComplete = planDetails ? 
+    Object.values(selectedMeals).every(meals => meals.length === planDetails.mealsPerWeek) : 
+    false;
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-8">
           {/* Main Content */}
@@ -130,32 +128,50 @@ const ConfigureSubscriptionPage = () => {
                 plan
               </p>
             </div>
+            
             {/* Week Tabs */}
             <div className="flex space-x-2 border-b border-gray-200">
-              {([1, 2, 3, 4] as Week[]).map(week => <button key={week} onClick={() => setActiveWeek(week)} className={`
+              {([1, 2, 3, 4] as Week[]).map(week => (
+                <button 
+                  key={week}
+                  onClick={() => setActiveWeek(week)}
+                  className={`
                     px-6 py-3 font-medium rounded-t-lg transition-colors
                     ${activeWeek === week ? 'bg-white border-b-2 border-primary-600 text-primary-600' : 'text-gray-600 hover:text-gray-900'}
                     ${isWeekComplete(week) ? 'text-green-600' : ''}
-                  `}>
+                  `}
+                >
                   Week {week}
                   {isWeekComplete(week) && <CheckIcon className="inline-block ml-2 w-4 h-4" />}
-                </button>)}
+                </button>
+              ))}
             </div>
+            
             {/* Meal Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {meals.map(meal => {
-              const isSelected = selectedMeals[activeWeek].includes(meal.id);
-              const isSelectionDisabled = !isSelected && selectedMeals[activeWeek].length >= planDetails.mealsPerWeek;
-              return <motion.div key={meal.id} className={`
+                const isSelected = selectedMeals[activeWeek].includes(meal.id);
+                const isSelectionDisabled = !isSelected && 
+                  (planDetails ? selectedMeals[activeWeek].length >= planDetails.mealsPerWeek : true);
+                
+                return (
+                  <motion.div 
+                    key={meal.id}
+                    className={`
                       relative rounded-xl border transition-all cursor-pointer
                       ${isSelected ? 'border-primary-600 ring-2 ring-primary-100' : 'border-gray-200 hover:border-gray-300'}
                       ${isSelectionDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                    `} onClick={() => !isSelectionDisabled && handleMealSelection(activeWeek, meal.id)} whileHover={!isSelectionDisabled ? {
-                scale: 1.02
-              } : {}}>
+                    `}
+                    onClick={() => !isSelectionDisabled && handleMealSelection(activeWeek, meal.id)}
+                    whileHover={!isSelectionDisabled ? { scale: 1.02 } : {}}
+                  >
                     <div className="p-6">
                       <div className="flex gap-4">
-                        <img src={meal.image} alt={meal.name} className="w-24 h-24 rounded-lg object-cover" />
+                        <img 
+                          src={meal.image} 
+                          alt={meal.name} 
+                          className="w-24 h-24 rounded-lg object-cover"
+                        />
                         <div>
                           <h3 className="font-medium text-gray-900">
                             {meal.name}
@@ -164,28 +180,41 @@ const ConfigureSubscriptionPage = () => {
                             {meal.description}
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {meal.tags.map(tag => <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
+                            {meal.tags && meal.tags.map(tag => (
+                              <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
                                 {tag}
-                              </span>)}
+                              </span>
+                            ))}
+                            {/* Replace dietaryInfo with the correct property name from your meals data */}
+                            {meal.category && meal.category.map((info: string) => (
+                              <span key={info} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
+                                {info}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        {isSelected && <div className="absolute top-4 right-4">
+                        {isSelected && (
+                          <div className="absolute top-4 right-4">
                             <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
                               <CheckIcon className="w-4 h-4 text-white" />
                             </div>
-                          </div>}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </motion.div>;
-            })}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
+          
           {/* Sticky Sidebar */}
           <div className="lg:sticky lg:top-8 space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-xl font-semibold mb-6">
                 Subscription Summary
               </h2>
+              
               {/* Current Week Summary */}
               <div className="mb-6">
                 <h3 className="font-medium text-gray-900 mb-2">
@@ -193,17 +222,24 @@ const ConfigureSubscriptionPage = () => {
                 </h3>
                 <div className="space-y-2">
                   {selectedMeals[activeWeek].map(mealId => {
-                  const meal = meals.find(m => m.id === mealId);
-                  if (!meal) return null;
-                  return <div key={mealId} className="flex items-center justify-between text-sm">
+                    const meal = meals.find(m => m.id === mealId);
+                    if (!meal) return null;
+                    
+                    return (
+                      <div key={mealId} className="flex items-center justify-between text-sm">
                         <span>{meal.name}</span>
-                        <button onClick={() => handleMealSelection(activeWeek, mealId)} className="text-gray-400 hover:text-gray-600">
+                        <button 
+                          onClick={() => handleMealSelection(activeWeek, mealId)} 
+                          className="text-gray-400 hover:text-gray-600"
+                        >
                           <XIcon className="w-4 h-4" />
                         </button>
-                      </div>;
-                })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+              
               {/* Cost Breakdown */}
               <div className="space-y-3 border-t border-gray-100 pt-6">
                 <div className="flex justify-between text-sm">
@@ -212,32 +248,47 @@ const ConfigureSubscriptionPage = () => {
                     Price
                   </span>
                   <span className="font-medium">
-                    ${planDetails?.finalTotal.toFixed(2)}
+                    ${planDetails?.finalTotal.toFixed(2) || '0.00'}
                   </span>
                 </div>
-                {billingFrequency === 'monthly' && <div className="flex justify-between text-sm text-success-600">
+                
+                {billingFrequency === 'monthly' && (
+                  <div className="flex justify-between text-sm text-success-600">
                     <span>Monthly Discount</span>
                     <span>-10%</span>
-                  </div>}
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>Price per meal</span>
-                  <span>${planDetails?.pricePerMeal.toFixed(2)}</span>
+                  <span>${planDetails?.pricePerMeal.toFixed(2) || '0.00'}</span>
                 </div>
               </div>
+              
               {/* Action Button */}
-              <Button className="w-full mt-6" onClick={handleProceedToCheckout} disabled={!isAllWeeksComplete}>
-                {isAllWeeksComplete ? <>
+              <Button 
+                className="w-full mt-6" 
+                onClick={handleProceedToCheckout} 
+                disabled={!isAllWeeksComplete}
+              >
+                {isAllWeeksComplete ? (
+                  <>
                     Proceed to Checkout
                     <ChevronRightIcon className="ml-2 w-4 h-4" />
-                  </> : <>
+                  </>
+                ) : (
+                  <>
                     <AlertCircleIcon className="w-4 h-4 mr-2" />
                     Complete All Weeks
-                  </>}
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ConfigureSubscriptionPage;

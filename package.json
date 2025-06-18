@@ -18,7 +18,7 @@
     "@radix-ui/react-tooltip": "latest",
     "@radix-ui/react-accordion": "latest",
     "react-hook-form": "^7.53.0",
-    "@hookform/resolvers": "latest",
+    "@hookform/resolvers": "^3.3.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { ChevronRightIcon } from 'lucide-react';
 import GradientText from './GradientText';
 const MealCategories = () => {
@@ -21,9 +21,10 @@ const MealCategories = () => {
     gradient: 'from-accent-500 to-accent-600',
     tag: 'Healthy'
   }];
-  return <section className="w-full bg-white py-24" id="meals">
+  return <section className="w-full bg-white" id="meals">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-4">
+        {/* Update h2 to use fluid typography */}
+        <h2 className="text-center mb-4">
           <GradientText variant="primary">
             Explore Our Meal Categories
           </GradientText>
@@ -34,7 +35,7 @@ const MealCategories = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {categories.map((category, index) => <div key={index} className="group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:-translate-y-2">
               <div className="aspect-[4/3] w-full">
-                <img src={category.image} alt={category.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img src={category.image} alt={category.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 {/* Updated gradient overlay for better text contrast */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90" />
               </div>

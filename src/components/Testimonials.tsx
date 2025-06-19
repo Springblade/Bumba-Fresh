@@ -1,6 +1,31 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { StarIcon } from 'lucide-react';
 import GradientText from './GradientText';
+const testimonials = [{
+  quote: 'Bumba has transformed my cooking routine. The recipes are easy to follow and everything tastes amazing!',
+  author: 'Sarah Johnson',
+  role: 'Busy Professional',
+  rating: 5,
+  avatar: 'https://randomuser.me/api/portraits/women/12.jpg'
+}, {
+  quote: "The quality of ingredients is exceptional. It's made healthy eating so much more convenient.",
+  author: 'Michael Chen',
+  role: 'Fitness Enthusiast',
+  rating: 5,
+  avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+}, {
+  quote: 'Perfect for our family. Even my picky eaters are trying new foods and enjoying them!',
+  author: 'Jessica Williams',
+  role: 'Parent of Two',
+  rating: 5,
+  avatar: 'https://randomuser.me/api/portraits/women/45.jpg'
+}, {
+  quote: 'The convenience and quality are unmatched. Every meal has been a delight!',
+  author: 'David Rodriguez',
+  role: 'Food Enthusiast',
+  rating: 5,
+  avatar: 'https://randomuser.me/api/portraits/men/67.jpg'
+}];
 const TestimonialCard = ({
   quote,
   author,
@@ -23,7 +48,7 @@ const TestimonialCard = ({
         </p>
       </div>
       <div className="flex items-center">
-        {avatar ? <img src={avatar} alt={author} className="h-12 w-12 rounded-full object-cover mr-4 border-2 border-primary-100" /> : <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-medium mr-4 shadow-lg">
+        {avatar ? <img src={avatar} alt={author} loading="lazy" className="h-12 w-12 rounded-full object-cover mr-4 border-2 border-primary-100" /> : <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-medium mr-4 shadow-lg">
             {initials}
           </div>}
         <div>
@@ -34,63 +59,13 @@ const TestimonialCard = ({
     </div>;
 };
 const Testimonials = () => {
-  const testimonials = [{
-    quote: 'Bumba has transformed my cooking routine. The recipes are easy to follow and everything tastes amazing!',
-    author: 'Sarah Johnson',
-    role: 'Busy Professional',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/women/12.jpg'
-  }, {
-    quote: "The quality of ingredients is exceptional. It's made healthy eating so much more convenient.",
-    author: 'Michael Chen',
-    role: 'Fitness Enthusiast',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
-  }, {
-    quote: 'Perfect for our family. Even my picky eaters are trying new foods and enjoying them!',
-    author: 'Jessica Williams',
-    role: 'Parent of Two',
-    rating: 5,
-    avatar: 'https://randomuser.me/api/portraits/women/45.jpg'
-  }];
-  return <section className="w-full bg-gradient-to-b from-primary-50 to-white py-24" id="testimonials">
+  return <section className="w-full bg-primary-50/70" id="testimonials">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">
-            <GradientText variant="primary">
-              What Our Customers Say
-            </GradientText>
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Join thousands of satisfied customers who have transformed their
-            dining experience with Bumba.
-          </p>
-        </div>
-        {/* Background decoration */}
-        <div className="absolute left-0 top-1/3 w-64 h-64 bg-primary-100 rounded-full filter blur-3xl opacity-30"></div>
-        <div className="absolute right-0 bottom-1/3 w-80 h-80 bg-secondary-100 rounded-full filter blur-3xl opacity-30"></div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-          {testimonials.map((testimonial, index) => <TestimonialCard key={index} {...testimonial} />)}
-        </div>
-        <div className="mt-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-3xl p-8 md:p-12 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full transform translate-x-1/3 -translate-y-1/3"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full transform -translate-x-1/3 translate-y-1/3"></div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
-            <div className="md:w-2/3">
-              <h3 className="text-2xl font-bold mb-4">
-                Ready to experience Bumba?
-              </h3>
-              <p className="text-white/90">
-                Join our community of food lovers and start enjoying delicious,
-                healthy meals today.
-              </p>
-            </div>
-            <div className="md:w-1/3 flex justify-center md:justify-end">
-              <button className="px-8 py-4 bg-white text-primary-600 hover:bg-gray-50 rounded-full font-medium transition-all duration-300 shadow-lg transform hover:-translate-y-1 button-hover-effect">
-                Get Started Now
-              </button>
-            </div>
-          </div>
+        <h2 className="text-center mb-4">
+          <GradientText variant="primary">What Our Customers Say</GradientText>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {testimonials.map(testimonial => <TestimonialCard key={testimonial.author} {...testimonial} />)}
         </div>
       </div>
     </section>;

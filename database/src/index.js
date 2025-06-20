@@ -18,6 +18,7 @@ const InventoryManager = require('../js/inventoryManager');
 const OrderManager = require('../js/orderManager');
 const MealOrderManager = require('../js/mealOrderManager');
 const PlanManager = require('../js/planManager');
+const ProfileManager = require('./profileManager');
 
 module.exports = {
   // Database connection
@@ -26,6 +27,7 @@ module.exports = {
   // User management
   AccountCreator,
   LoginManager,
+  ProfileManager,
   
   // Inventory management
   InventoryManager,

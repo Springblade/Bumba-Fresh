@@ -20,6 +20,7 @@ type AuthContextType = {
   logout: () => void;
   isLoading: boolean;
   updateUserAddress: (newAddress: Address) => void;
+  updateUserProfile: (profileData: { firstName: string; lastName: string }) => void;
 };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
@@ -53,13 +54,24 @@ export function AuthProvider({
         }
       }
     }
-    setIsLoading(false);
-  }, [navigate]);
+    setIsLoading(false);  }, [navigate]);
+  
   const updateUserAddress = (newAddress: Address) => {
     if (!user) return;
     const updatedUser = {
       ...user,
       address: newAddress
+    };
+    setUser(updatedUser);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  };
+  
+  const updateUserProfile = (profileData: { firstName: string; lastName: string }) => {
+    if (!user) return;
+    const updatedUser = {
+      ...user,
+      firstName: profileData.firstName,
+      lastName: profileData.lastName
     };
     setUser(updatedUser);
     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
@@ -89,13 +101,13 @@ export function AuthProvider({
     localStorage.removeItem('currentUser');
     setUser(null);
     navigate('/auth');
-  };
-  return <AuthContext.Provider value={{
+  };  return <AuthContext.Provider value={{
     user,
     login,
     logout,
     isLoading,
-    updateUserAddress
+    updateUserAddress,
+    updateUserProfile
   }}>
       {children}
     </AuthContext.Provider>;

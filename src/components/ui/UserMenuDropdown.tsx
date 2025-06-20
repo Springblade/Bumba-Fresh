@@ -15,8 +15,7 @@ export const UserMenuDropdown = ({
     user,
     logout
   } = useAuth();
-  const navigate = useNavigate();
-  const menuItems = [{
+  const navigate = useNavigate();  const menuItems = [{
     icon: LayoutDashboardIcon,
     label: 'Dashboard',
     href: '/account'
@@ -27,7 +26,7 @@ export const UserMenuDropdown = ({
   }, {
     icon: SettingsIcon,
     label: 'Profile Settings',
-    href: '/account/profile'
+    href: '/account/settings'
   }];
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

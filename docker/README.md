@@ -13,7 +13,6 @@ docker-compose up --build
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # Database: localhost:5433
-# Redis: localhost:6379
 # PgAdmin: http://localhost:5050 (use profile: --profile dev)
 ```
 
@@ -45,7 +44,7 @@ docker-compose up --build -d
 - **Features**:
   - Auto-restart on changes (dev mode)
   - Debug port 9229 (dev mode)
-  - Connected to PostgreSQL and Redis
+  - Connected to PostgreSQL
 
 ### Database (`postgres`)
 - **Image**: PostgreSQL 15 Alpine
@@ -56,13 +55,7 @@ docker-compose up --build -d
   - Health checks
   - Optimized for UTF-8
 
-### Cache (`redis`)
-- **Image**: Redis 7 Alpine
-- **Port**: 6379
-- **Features**:
-  - Persistent storage with AOF
-  - Memory optimization (256MB limit)
-  - LRU eviction policy
+
 
 ### Reverse Proxy (`nginx`)
 - **Image**: Nginx Alpine
@@ -92,12 +85,10 @@ docker-compose up --build -d
 - Separate dependency installation and build stages
 
 ### Caching Strategy
-- Redis for application caching
 - Nginx static file caching with proper headers
 - Docker layer caching optimization
 
 ### Resource Limits
-- Redis memory limit: 256MB with LRU eviction
 - PostgreSQL optimized for UTF-8 and performance
 - Nginx worker connections: 1024
 
@@ -130,7 +121,6 @@ All development environment variables are pre-configured in the Docker Compose f
 ## Volumes
 
 - `postgres_data`: PostgreSQL database files
-- `redis_data`: Redis persistence files
 
 ## Networks
 
@@ -160,16 +150,13 @@ docker-compose logs -f [service-name]
 
 # Database shell
 docker-compose exec postgres psql -U bumba_user -d bumba_fresh
-
-# Redis CLI
-docker-compose exec redis redis-cli
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Port conflicts**: Ensure ports 3000, 8000, 5433, 6379, 5050, 80 are available
+1. **Port conflicts**: Ensure ports 3000, 8000, 5433, 5050, 80 are available
 2. **Volume permissions**: On Linux, ensure Docker has proper permissions for volume mounts
 3. **Memory issues**: Increase Docker Desktop memory allocation if services fail to start
 4. **Build failures**: Clear Docker cache with `docker system prune -a` if builds fail

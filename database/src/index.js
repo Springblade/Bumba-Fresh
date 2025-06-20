@@ -11,13 +11,13 @@
  * - Modern JavaScript async/await patterns
  */
 
-const DatabaseConnection = require('../js/connect');
+const DatabaseConnection = require('./connect');
 const AccountCreator = require('./accountCreator');
-const LoginManager = require('../js/loginManager');
-const InventoryManager = require('../js/inventoryManager');
-const OrderManager = require('../js/orderManager');
-const MealOrderManager = require('../js/mealOrderManager');
-const PlanManager = require('../js/planManager');
+const LoginManager = require('./loginManager');
+const InventoryManager = require('./inventoryManager');
+const OrderManager = require('./orderManager');
+const MealOrderManager = require('./mealOrderManager');
+const PlanManager = require('./planManager');
 
 module.exports = {
   // Database connection

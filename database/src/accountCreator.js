@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const db = require('../js/connect');
+const db = require('./connect');
 
 /**
  * Account creation utility - JavaScript equivalent of Create.java

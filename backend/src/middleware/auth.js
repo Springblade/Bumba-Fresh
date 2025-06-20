@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { query } = require('../config/database');
+const { LoginManager } = require('../../../database/src');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key';
 
@@ -22,15 +22,10 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.substring(7);
 
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);    // Check if user still exists in database
+    const result = await LoginManager.getUserById(decoded.userId);
 
-    // Check if user still exists in database
-    const result = await query(
-      'SELECT user_id, username, email FROM account WHERE user_id = $1',
-      [decoded.userId]
-    );
-
-    if (result.rows.length === 0) {
+    if (!result.success) {
       return res.status(401).json({
         error: 'Access denied',
         message: 'User not found'
@@ -39,9 +34,9 @@ const authMiddleware = async (req, res, next) => {
 
     // Add user info to request object
     req.user = {
-      id: decoded.userId,
-      username: decoded.username,
-      email: decoded.email
+      id: result.user.id,
+      username: result.user.username,
+      email: result.user.email
     };
 
     next();

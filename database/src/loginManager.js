@@ -107,7 +107,6 @@ class LoginManager {
       return false;
     }
   }
-
   /**
    * Get user profile data (without password)
    * @param {string} identifier - Username or email
@@ -126,6 +125,51 @@ class LoginManager {
     } catch (error) {
       console.error('Error getting user profile:', error);
       return null;
+    }
+  }
+
+  /**
+   * Get user by ID (without password)
+   * @param {number} userId - User ID
+   * @returns {Promise<Object>} User profile result
+   */
+  static async getUserById(userId) {
+    const query = `
+      SELECT user_id, username, email, first_name, last_name, phone, address, created_at, updated_at 
+      FROM account 
+      WHERE user_id = $1
+    `;
+    
+    try {
+      const result = await db.query(query, [userId]);
+      
+      if (result.rows.length === 0) {
+        return {
+          success: false,
+          message: 'User not found'
+        };
+      }
+
+      const user = result.rows[0];
+      return {
+        success: true,
+        user: {
+          id: user.user_id,
+          username: user.username,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          phone: user.phone,
+          address: user.address,
+          createdAt: user.created_at
+        }
+      };
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      return {
+        success: false,
+        message: 'Failed to retrieve user'
+      };
     }
   }
 

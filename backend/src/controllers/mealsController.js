@@ -1,5 +1,5 @@
-const { query } = require('../config/database');
 const { validationResult } = require('express-validator');
+const { InventoryManager } = require('../../../database/src');
 
 /**
  * Get all meals with optional filtering
@@ -19,116 +19,69 @@ const getAllMeals = async (req, res) => {
       limit = 20
     } = req.query;
 
-    let queryText = `
-      SELECT meal_id, meal, description, quantity, price, category, 
-             dietary_info, prep_time, calories, image_url, is_active,
-             created_at, updated_at
-      FROM inventory 
-      WHERE is_active = true
-    `;
-    
-    const queryParams = [];
-    let paramCount = 0;
+    // Prepare filters for the database layer
+    const filters = {};
+    if (category) filters.category = category;
+    if (minPrice) filters.minPrice = parseFloat(minPrice);
+    if (maxPrice) filters.maxPrice = parseFloat(maxPrice);
+    if (dietary) filters.dietary = dietary;
+    if (search) filters.search = search;
 
-    // Add filters
-    if (category) {
-      paramCount++;
-      queryText += ` AND category = $${paramCount}`;
-      queryParams.push(category);
-    }
+    // Use InventoryManager to get meals
+    const meals = await InventoryManager.getAllMeals(filters);
 
-    if (dietary) {
-      paramCount++;
-      queryText += ` AND $${paramCount} = ANY(dietary_info)`;
-      queryParams.push(dietary);
-    }
+    // Apply sorting and pagination (could be moved to database layer)
+    let filteredMeals = meals;
 
-    if (minPrice) {
-      paramCount++;
-      queryText += ` AND price >= $${paramCount}`;
-      queryParams.push(parseFloat(minPrice));
-    }
-
-    if (maxPrice) {
-      paramCount++;
-      queryText += ` AND price <= $${paramCount}`;
-      queryParams.push(parseFloat(maxPrice));
-    }
-
+    // Search filter (simple text search)
     if (search) {
-      paramCount++;
-      queryText += ` AND (meal ILIKE $${paramCount} OR description ILIKE $${paramCount})`;
-      queryParams.push(`%${search}%`);
+      const searchLower = search.toLowerCase();
+      filteredMeals = filteredMeals.filter(meal => 
+        meal.meal.toLowerCase().includes(searchLower) ||
+        (meal.description && meal.description.toLowerCase().includes(searchLower))
+      );
     }
 
-    // Add sorting
-    const allowedSortFields = ['meal', 'price', 'category', 'calories', 'prep_time', 'created_at'];
-    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'meal';
-    const order = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-    queryText += ` ORDER BY ${sortField} ${order}`;
+    // Dietary filter
+    if (dietary) {
+      filteredMeals = filteredMeals.filter(meal => 
+        meal.dietary_info && meal.dietary_info.includes(dietary)
+      );
+    }
 
-    // Add pagination
+    // Sorting
+    filteredMeals.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (sortOrder === 'DESC') {
+        return bValue > aValue ? 1 : -1;
+      } else {
+        return aValue > bValue ? 1 : -1;
+      }
+    });
+
+    // Pagination
     const offset = (page - 1) * limit;
-    paramCount++;
-    queryText += ` LIMIT $${paramCount}`;
-    queryParams.push(parseInt(limit));
-    
-    paramCount++;
-    queryText += ` OFFSET $${paramCount}`;
-    queryParams.push(offset);
-
-    const result = await query(queryText, queryParams);
-
-    // Get total count for pagination
-    let countQuery = `SELECT COUNT(*) FROM inventory WHERE is_active = true`;
-    const countParams = [];
-    let countParamIndex = 0;
-
-    if (category) {
-      countParamIndex++;
-      countQuery += ` AND category = $${countParamIndex}`;
-      countParams.push(category);
-    }
-
-    if (dietary) {
-      countParamIndex++;
-      countQuery += ` AND $${countParamIndex} = ANY(dietary_info)`;
-      countParams.push(dietary);
-    }
-
-    if (minPrice) {
-      countParamIndex++;
-      countQuery += ` AND price >= $${countParamIndex}`;
-      countParams.push(parseFloat(minPrice));
-    }
-
-    if (maxPrice) {
-      countParamIndex++;
-      countQuery += ` AND price <= $${countParamIndex}`;
-      countParams.push(parseFloat(maxPrice));
-    }
-
-    if (search) {
-      countParamIndex++;
-      countQuery += ` AND (meal ILIKE $${countParamIndex} OR description ILIKE $${countParamIndex})`;
-      countParams.push(`%${search}%`);
-    }
-
-    const countResult = await query(countQuery, countParams);
-    const totalCount = parseInt(countResult.rows[0].count);
+    const paginatedMeals = filteredMeals.slice(offset, offset + parseInt(limit));
 
     res.json({
-      meals: result.rows,
+      meals: paginatedMeals,
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(totalCount / limit),
-        totalItems: totalCount,
+        totalItems: filteredMeals.length,
+        totalPages: Math.ceil(filteredMeals.length / limit),
         itemsPerPage: parseInt(limit)
       }
     });
 
   } catch (error) {
-    console.error('Get meals error:', error);
+    console.error('Error fetching meals:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch meals'
@@ -143,16 +96,10 @@ const getMealById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await query(
-      `SELECT meal_id, meal, description, quantity, price, category, 
-              dietary_info, prep_time, calories, image_url, is_active,
-              created_at, updated_at
-       FROM inventory 
-       WHERE meal_id = $1 AND is_active = true`,
-      [id]
-    );
+    // Use InventoryManager to get meal by ID
+    const meal = await InventoryManager.getMealById(parseInt(id));
 
-    if (result.rows.length === 0) {
+    if (!meal) {
       return res.status(404).json({
         error: 'Meal not found',
         message: 'The requested meal does not exist or is not available'
@@ -160,7 +107,7 @@ const getMealById = async (req, res) => {
     }
 
     res.json({
-      meal: result.rows[0]
+      meal: meal
     });
 
   } catch (error) {
@@ -199,16 +146,29 @@ const addMeal = async (req, res) => {
       imageUrl
     } = req.body;
 
-    const result = await query(
-      `INSERT INTO inventory (meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-       RETURNING meal_id, meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url, created_at`,
-      [meal, description, quantity, price, category, dietaryInfo, prepTime, calories, imageUrl]
+    // Use InventoryManager to add meal
+    const result = await InventoryManager.addMealKit(
+      meal, 
+      description, 
+      quantity, 
+      price, 
+      category, 
+      dietaryInfo, 
+      prepTime, 
+      calories, 
+      imageUrl
     );
+
+    if (!result.success) {
+      return res.status(400).json({
+        error: 'Failed to add meal',
+        message: result.error
+      });
+    }
 
     res.status(201).json({
       message: 'Meal added successfully',
-      meal: result.rows[0]
+      meal: result.meal
     });
 
   } catch (error) {

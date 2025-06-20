@@ -1,7 +1,6 @@
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { query } = require('../config/database');
 const { validationResult } = require('express-validator');
+const { AccountCreator, LoginManager } = require('../../../database/src');
 
 // JWT secret key
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key';
@@ -24,39 +23,30 @@ const register = async (req, res) => {
 
     const { username, password, email, firstName, lastName, phone, address } = req.body;
 
-    // Check if username already exists (equivalent to unique() method in Java)
-    const existingUser = await query(
-      'SELECT user_id FROM account WHERE username = $1 OR email = $2',
-      [username, email]
+    // Create account using the database layer
+    const result = await AccountCreator.createAccount(
+      username, 
+      password, 
+      email, 
+      firstName, 
+      lastName, 
+      phone, 
+      address
     );
 
-    if (existingUser.rows.length > 0) {
+    if (!result.success) {
       return res.status(409).json({
-        error: 'User already exists',
-        message: 'Username or email is already taken'
+        error: result.error || 'Account creation failed',
+        message: result.message || 'Failed to create account'
       });
     }
-
-    // Hash password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Insert new user (equivalent to insert() method in Java)
-    const result = await query(
-      `INSERT INTO account (username, password, email, first_name, last_name, phone, address) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
-       RETURNING user_id, username, email, first_name, last_name, created_at`,
-      [username, hashedPassword, email, firstName, lastName, phone, address]
-    );
-
-    const newUser = result.rows[0];
 
     // Generate JWT token
     const token = jwt.sign(
       { 
-        userId: newUser.user_id, 
-        username: newUser.username,
-        email: newUser.email 
+        userId: result.user.user_id, 
+        username: result.user.username,
+        email: result.user.email 
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -65,12 +55,12 @@ const register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       user: {
-        id: newUser.user_id,
-        username: newUser.username,
-        email: newUser.email,
-        firstName: newUser.first_name,
-        lastName: newUser.last_name,
-        createdAt: newUser.created_at
+        id: result.user.user_id,
+        username: result.user.username,
+        email: result.user.email,
+        firstName: result.user.first_name,
+        lastName: result.user.last_name,
+        createdAt: result.user.created_at
       },
       token
     });
@@ -101,37 +91,22 @@ const login = async (req, res) => {
 
     const { username, password } = req.body;
 
-    // Find user (equivalent to check() method in Java but with password hashing)
-    const result = await query(
-      `SELECT user_id, username, password, email, first_name, last_name, phone, address 
-       FROM account WHERE username = $1 OR email = $1`,
-      [username]
-    );
+    // Use LoginManager to authenticate user
+    const result = await LoginManager.loginAccount(username, password);
 
-    if (result.rows.length === 0) {
+    if (!result.success) {
       return res.status(401).json({
         error: 'Authentication failed',
-        message: 'Invalid username or password'
-      });
-    }
-
-    const user = result.rows[0];
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        error: 'Authentication failed',
-        message: 'Invalid username or password'
+        message: result.message
       });
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { 
-        userId: user.user_id, 
-        username: user.username,
-        email: user.email 
+        userId: result.user.user_id, 
+        username: result.user.username,
+        email: result.user.email 
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -140,13 +115,13 @@ const login = async (req, res) => {
     res.json({
       message: 'Login successful',
       user: {
-        id: user.user_id,
-        username: user.username,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        phone: user.phone,
-        address: user.address
+        id: result.user.user_id,
+        username: result.user.username,
+        email: result.user.email,
+        firstName: result.user.first_name,
+        lastName: result.user.last_name,
+        phone: result.user.phone,
+        address: result.user.address
       },
       token
     });
@@ -176,33 +151,18 @@ const verifyToken = async (req, res) => {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Get fresh user data
-    const result = await query(
-      `SELECT user_id, username, email, first_name, last_name, phone, address, created_at 
-       FROM account WHERE user_id = $1`,
-      [decoded.userId]
-    );
+    // Use LoginManager to get user by ID
+    const result = await LoginManager.getUserById(decoded.userId);
 
-    if (result.rows.length === 0) {
+    if (!result.success) {
       return res.status(401).json({
         error: 'Access denied',
         message: 'Invalid token'
       });
     }
 
-    const user = result.rows[0];
-
     res.json({
-      user: {
-        id: user.user_id,
-        username: user.username,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        phone: user.phone,
-        address: user.address,
-        createdAt: user.created_at
-      }
+      user: result.user
     });
 
   } catch (error) {

@@ -31,14 +31,12 @@ services:
       - PORT=8000
       - DATABASE_URL=postgresql://bumba_user:bumba_pass@postgres:5432/bumba_fresh
       - JWT_SECRET=your-super-secure-jwt-secret-key-change-in-production
-      - REDIS_URL=redis://redis:6379
+
     volumes:
       - ./backend:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run start:prod"
+      - /app/node_modules    command: sh -c "npm install && npm run start:prod"
     depends_on:
       - postgres
-      - redis
     restart: unless-stopped
     networks:
       - bumba-network
@@ -62,24 +60,6 @@ services:
       - bumba-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bumba_user -d bumba_fresh"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: bumba-fresh-redis
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    networks:
-      - bumba-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -120,8 +100,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
     driver: local
 
 networks:

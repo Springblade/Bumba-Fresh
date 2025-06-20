@@ -75,21 +75,17 @@ const optionalAuth = async (req, res, next) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       req.user = null;
       return next();
-    }
-
-    const token = authHeader.substring(7);
+    }    const token = authHeader.substring(7);
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const result = await query(
-      'SELECT user_id, username, email FROM account WHERE user_id = $1',
-      [decoded.userId]
-    );
+    // Use LoginManager to get user by ID
+    const result = await LoginManager.getUserById(decoded.userId);
 
-    if (result.rows.length > 0) {
+    if (result.success) {
       req.user = {
-        id: decoded.userId,
-        username: decoded.username,
-        email: decoded.email
+        id: result.user.id,
+        username: result.user.username,
+        email: result.user.email
       };
     } else {
       req.user = null;

@@ -267,12 +267,97 @@ class InventoryManager {
       WHERE is_active = true AND quantity <= $1
       ORDER BY quantity ASC
     `;
-    
-    try {
+      try {
       const result = await db.query(query, [threshold]);
       return result.rows;
     } catch (error) {
       console.error('Error getting low stock meals:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Update a meal's details
+   * @param {number} mealId - Meal ID
+   * @param {Object} updates - Object containing fields to update
+   * @returns {Promise<Object>} Updated meal object or null
+   */
+  static async updateMeal(mealId, updates) {
+    const {
+      meal,
+      description,
+      quantity,
+      price,
+      category,
+      dietaryInfo,
+      prepTime,
+      calories,
+      imageUrl,
+      isActive
+    } = updates;
+
+    const query = `
+      UPDATE inventory 
+      SET meal = $1, description = $2, quantity = $3, price = $4, category = $5, 
+          dietary_info = $6, prep_time = $7, calories = $8, image_url = $9, is_active = $10, 
+          updated_at = CURRENT_TIMESTAMP
+      WHERE meal_id = $11 
+      RETURNING meal_id, meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url, is_active, updated_at
+    `;
+    
+    try {
+      const result = await db.query(query, [
+        meal, description, quantity, price, category, dietaryInfo, 
+        prepTime, calories, imageUrl, isActive, mealId
+      ]);
+      
+      return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (error) {
+      console.error('Error updating meal:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get all distinct meal categories
+   * @returns {Promise<Array>} Array of categories with meal counts
+   */
+  static async getCategories() {
+    const query = `
+      SELECT DISTINCT category, COUNT(*) as meal_count 
+      FROM inventory 
+      WHERE is_active = true AND category IS NOT NULL 
+      GROUP BY category 
+      ORDER BY category
+    `;
+    
+    try {
+      const result = await db.query(query);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all distinct dietary options
+   * @returns {Promise<Array>} Array of dietary options with meal counts
+   */
+  static async getDietaryOptions() {
+    const query = `
+      SELECT DISTINCT UNNEST(dietary_info) as dietary_option, COUNT(*) as meal_count
+      FROM inventory 
+      WHERE is_active = true AND dietary_info IS NOT NULL 
+      GROUP BY dietary_option 
+      ORDER BY dietary_option
+    `;
+    
+    try {
+      const result = await db.query(query);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting dietary options:', error);
       return [];
     }
   }

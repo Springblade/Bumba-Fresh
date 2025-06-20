@@ -193,9 +193,7 @@ const updateMeal = async (req, res) => {
         error: 'Validation failed',
         details: errors.array()
       });
-    }
-
-    const {
+    }    const {
       meal,
       description,
       quantity,
@@ -208,17 +206,21 @@ const updateMeal = async (req, res) => {
       isActive
     } = req.body;
 
-    const result = await query(
-      `UPDATE inventory 
-       SET meal = $1, description = $2, quantity = $3, price = $4, category = $5, 
-           dietary_info = $6, prep_time = $7, calories = $8, image_url = $9, is_active = $10, 
-           updated_at = CURRENT_TIMESTAMP
-       WHERE meal_id = $11 
-       RETURNING meal_id, meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url, is_active, updated_at`,
-      [meal, description, quantity, price, category, dietaryInfo, prepTime, calories, imageUrl, isActive, id]
-    );
+    // Use InventoryManager to update meal
+    const updatedMeal = await InventoryManager.updateMeal(parseInt(id), {
+      meal,
+      description,
+      quantity,
+      price,
+      category,
+      dietaryInfo,
+      prepTime,
+      calories,
+      imageUrl,
+      isActive
+    });
 
-    if (result.rows.length === 0) {
+    if (!updatedMeal) {
       return res.status(404).json({
         error: 'Meal not found',
         message: 'The requested meal does not exist'
@@ -227,7 +229,7 @@ const updateMeal = async (req, res) => {
 
     res.json({
       message: 'Meal updated successfully',
-      meal: result.rows[0]
+      meal: updatedMeal
     });
 
   } catch (error) {
@@ -244,16 +246,11 @@ const updateMeal = async (req, res) => {
  */
 const getCategories = async (req, res) => {
   try {
-    const result = await query(
-      `SELECT DISTINCT category, COUNT(*) as meal_count 
-       FROM inventory 
-       WHERE is_active = true AND category IS NOT NULL 
-       GROUP BY category 
-       ORDER BY category`
-    );
+    // Use InventoryManager to get categories
+    const categories = await InventoryManager.getCategories();
 
     res.json({
-      categories: result.rows
+      categories: categories
     });
 
   } catch (error) {
@@ -270,16 +267,11 @@ const getCategories = async (req, res) => {
  */
 const getDietaryOptions = async (req, res) => {
   try {
-    const result = await query(
-      `SELECT DISTINCT UNNEST(dietary_info) as dietary_option, COUNT(*) as meal_count
-       FROM inventory 
-       WHERE is_active = true AND dietary_info IS NOT NULL 
-       GROUP BY dietary_option 
-       ORDER BY dietary_option`
-    );
+    // Use InventoryManager to get dietary options
+    const dietaryOptions = await InventoryManager.getDietaryOptions();
 
     res.json({
-      dietaryOptions: result.rows
+      dietaryOptions: dietaryOptions
     });
 
   } catch (error) {

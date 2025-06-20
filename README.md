@@ -65,11 +65,11 @@ The authentication system follows a direct backend-to-database pattern:
 ## Project Structure
 
 ```
-├── src/                    # Frontend React application
+├── frontend/              # Frontend React application
 ├── backend/               # Node.js Express API
 │   ├── src/controllers/   # API route handlers
 │   ├── src/middleware/    # Authentication & security
-│   └── src/config/        # Database configuration
+│   └── src/routes/        # API route definitions
 ├── database/              # Database utilities & schema
 │   ├── src/               # JavaScript database layer
 │   └── init.sql          # Database schema

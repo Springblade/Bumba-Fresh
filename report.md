@@ -44,12 +44,12 @@ The project follows a well-organized, feature-based architecture:
 
 ### File Count
 - **Total TypeScript/JavaScript files**: 123+ files
-- **Frontend source code**: Located in src directory
+- **Frontend source code**: Located in frontend directory
 - **Backend source code**: Located in backend directory
 
 ### Directory Organization
 
-#### Frontend Application (src)
+#### Frontend Application (frontend)
 - **Pages**: 8 main page components (Home, Menu, Cart, Auth, Payment, etc.)
 - **Components**: Organized into feature-specific folders
 - **Context**: 8 context providers for state management
@@ -61,7 +61,7 @@ The project follows a well-organized, feature-based architecture:
 #### Backend Application (backend)
 ```
 backend/
-├── src/
+├── frontend/
 │   ├── config/          # Database configuration
 │   ├── controllers/     # Business logic handlers
 │   ├── middleware/      # Authentication, logging, error handling
@@ -239,6 +239,7 @@ POST /api/plans - Create subscription
 ✅ **Backend API Infrastructure** - Express.js server with full middleware stack
 ✅ **PostgreSQL Database** - Complete schema with sample data
 ✅ **JavaScript Database Layer** - Converted from Java, handles all data operations
+✅ **Direct Database Communication** - Backend uses database layer exclusively (no direct DB connections)
 ✅ **Authentication System** - JWT-based auth with direct database communication
 ✅ **Meal Management API** - CRUD operations with filtering and pagination
 ✅ **Docker Configuration** - Multi-stage builds with Alpine Linux
@@ -255,6 +256,7 @@ POST /api/plans - Create subscription
 ✅ **Direct Database Communication** - Backend communicates directly with database layer
 ✅ **Java to JavaScript Migration** - Converted all database operations to modern JavaScript
 ✅ **Stateless Authentication** - JWT tokens provide session management without server-side storage
+✅ **Simplified Backend Architecture** - Removed backend database.js, all DB operations through database layer
 ✅ Responsive design implementation
 ✅ Error boundary system
 

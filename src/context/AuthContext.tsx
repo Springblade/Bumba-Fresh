@@ -1,0 +1,169 @@
+import React, { useEffect, useState, createContext, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser, registerUser, verifyToken, logoutUser, RegisterData } from '../services/api';
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+type User = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  address?: Address;
+};
+type AuthContextType = {
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
+  logout: () => void;
+  isLoading: boolean;
+  updateUserAddress: (newAddress: Address) => void;
+};
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export function AuthProvider({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  // Check for existing authentication on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await verifyToken();
+          const userData = {
+            id: response.user.id.toString(),
+            email: response.user.email,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            // Parse address if it exists and is a string, otherwise keep as Address object
+            address: typeof response.user.address === 'string' ? undefined : response.user.address
+          };
+          setUser(userData);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          // Clear invalid tokens
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('currentUser');
+          setUser(null);
+          
+          // Only redirect if on a protected route
+          const protectedRoutes = ['/cart', '/checkout', '/payment', '/account'];
+          if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
+            navigate('/auth');
+          }
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  const updateUserAddress = (newAddress: Address) => {
+    if (!user) return;
+    const updatedUser = {
+      ...user,
+      address: newAddress
+    };
+    setUser(updatedUser);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  };  const login = async (email: string, password: string) => {
+    try {
+      console.log('Attempting login with:', { email });
+      const response = await loginUser({ email, password });
+      console.log('Login response:', response);
+      
+      const userData = {
+        id: response.user.id.toString(),
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        // Parse address if it exists and is a string, otherwise keep as Address object
+        address: typeof response.user.address === 'string' ? undefined : response.user.address
+      };
+
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      setUser(userData);
+      
+      console.log('Login successful, user set:', userData);
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Clear any existing auth data on login failure
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      throw error;
+    }
+  };  const register = async (userData: RegisterData) => {
+    try {
+      console.log('Attempting registration with:', { email: userData.email, firstName: userData.firstName, lastName: userData.lastName });
+      const response = await registerUser(userData);
+      console.log('Registration response:', response);
+      
+      const userInfo = {
+        id: response.user.id.toString(),
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        // Parse address if it exists and is a string, otherwise keep as Address object
+        address: typeof response.user.address === 'string' ? undefined : response.user.address
+      };
+
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('currentUser', JSON.stringify(userInfo));
+      setUser(userInfo);
+      
+      console.log('Registration successful, user set:', userInfo);
+    } catch (error) {
+      console.error('Registration failed:', error);
+      // Clear any existing auth data on registration failure
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      navigate('/auth');
+    }
+  };
+
+  return <AuthContext.Provider value={{
+    user,
+    login,
+    register,
+    logout,
+    isLoading,
+    updateUserAddress
+  }}>
+      {children}
+    </AuthContext.Provider>;
+}
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

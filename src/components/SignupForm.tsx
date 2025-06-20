@@ -4,6 +4,7 @@ import { PasswordInput } from './ui/PasswordInput';
 import { Button } from './ui/Button';
 import { UserIcon, AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+<<<<<<< Updated upstream
 export const SignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -13,7 +14,58 @@ export const SignupForm = () => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
+=======
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+export const SignupForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({});
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await register({
+        firstName,
+        lastName,
+        email,
+        password
+      });
+      
+      // Registration successful, redirect to main page
+      navigate('/');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Handle specific error messages
+      if (error.message.includes('email')) {
+        setErrors({
+          email: 'Email already registered'
+        });
+      } else if (error.message.includes('password')) {
+        setErrors({
+          password: 'Password does not meet requirements'
+        });
+      } else {
+        setErrors({
+          email: 'Registration failed. Please try again.'
+        });
+      }    } finally {
+      setIsLoading(false);
+    }
+>>>>>>> Stashed changes
   };
+
   return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
       <div className="space-y-6">
         <div className="flex gap-x-4">

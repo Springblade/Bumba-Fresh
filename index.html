@@ -1,13 +1,52 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/index.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>1-1 Chat App</title>
+  <script defer src="/socket.io/socket.io.js"></script>
+  <script defer src="script.js"></script>
+  <style>
+    body { margin:0; display:flex; height:100vh; font-family:sans-serif; }
+    #user-list {
+      width:200px; background:#2f2f2f; color:#eee; overflow-y:auto;
+    }
+    #user-list li {
+      padding:10px; cursor:pointer; border-bottom:1px solid #444;
+    }
+    #user-list li.active { background:#444; }
+    #chat {
+      flex:1; display:flex; flex-direction:column; background:#141414; color:#eee;
+    }
+    #header {
+      padding:10px; background:#1f1f1f; font-weight:bold;
+    }
+    #messages {
+      flex:1; padding:10px; overflow-y:auto;
+    }
+    #input-form {
+      display:flex; border-top:1px solid #444;
+    }
+    #input-form input {
+      flex:1; padding:10px; border:none; outline:none; background:#222; color:#eee;
+    }
+    #input-form button {
+      padding:0 20px; border:none; background:#007bff; color:#fff; cursor:pointer;
+    }
+    .msg { margin-bottom:8px; }
+    .msg .who { font-weight:bold; }
+    .msg .time { font-size:0.8em; color:#888; margin-left:6px; }
+  </style>
+</head>
+<body>
+  <ul id="user-list"></ul>
+  <div id="chat">
+    <div id="header">Select a user to chat</div>
+    <div id="messages"></div>
+    <form id="input-form">
+      <input id="msg-input" placeholder="Type a message…" autocomplete="off"/>
+      <button>Send</button>
+    </form>
+  </div>
+</body>
 </html>

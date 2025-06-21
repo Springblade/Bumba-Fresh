@@ -1,39 +1,9 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
-const authMiddleware = require('./auth');
+const authMiddleware = require('../middleware/auth');
+const { getUserProfile, updateUserProfile, updatePassword } = require('../controllers/userController');
 
 const router = express.Router();
-
-// Placeholder route handlers
-const getUserProfile = async (req, res) => {
-  try {
-    res.json({
-      message: 'User profile endpoint available',
-      user: req.user || null
-    });
-  } catch (error) {
-    console.error('Get user profile error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to fetch user profile'
-    });
-  }
-};
-
-const updateUserProfile = async (req, res) => {
-  try {
-    res.json({
-      message: 'Update user profile endpoint available',
-      user: req.user || null
-    });
-  } catch (error) {
-    console.error('Update user profile error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to update user profile'
-    });
-  }
-};
 
 // Validation rules
 const updateProfileValidation = [
@@ -58,8 +28,19 @@ const updateProfileValidation = [
     .withMessage('Address must be less than 500 characters')
 ];
 
+const passwordValidation = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters long')
+];
+
 // Routes (all protected)
 router.get('/profile', authMiddleware, getUserProfile);
 router.put('/profile', authMiddleware, updateProfileValidation, updateUserProfile);
+router.put('/profile/password', authMiddleware, passwordValidation, updatePassword);
 
 module.exports = router;

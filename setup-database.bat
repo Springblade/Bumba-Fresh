@@ -40,11 +40,11 @@ echo  PostgreSQL is running
 echo.
 
 echo  Creating/Updating database...
-psql -U postgres -c "DROP DATABASE IF EXISTS mealkits;"
-psql -U postgres -c "CREATE DATABASE mealkits;"
+psql -U postgres -c "DROP DATABASE IF EXISTS Bumba_fresh;"
+psql -U postgres -c "CREATE DATABASE Bumba_fresh;"
 
 echo  Running database schema...
-psql -U postgres -d mealkits -f database/init.sql
+psql -U postgres -d Bumba_fresh -f database/init.sql
 
 if errorlevel 1 (
     echo  Database setup failed
@@ -54,7 +54,7 @@ if errorlevel 1 (
 
 echo  Database setup completed successfully!
 echo.
-echo  Database: mealkits
+echo  Database: Bumba_fresh
 echo  Default admin account: admin@gmail.com / password123
 echo.
 pause

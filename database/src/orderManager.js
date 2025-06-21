@@ -4,7 +4,8 @@ const db = require('./connect');
  * Order management utility - JavaScript equivalent of Order.java
  * Enhanced with comprehensive order management functionality
  */
-class OrderManager {  /**
+class OrderManager {
+  /**
    * Create a new order
    * @param {number} userId - User ID
    * @param {number} totalPrice - Total order price

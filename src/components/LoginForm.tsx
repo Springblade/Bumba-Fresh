@@ -4,20 +4,59 @@ import { PasswordInput } from './ui/PasswordInput';
 import { Button } from './ui/Button';
 import { AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
-export const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export const LoginForm = () => {  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const handleSubmit = async (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
-  return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
+    setErrors({});
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;      await login(email, password);
+      
+      // Add a small delay to ensure the auth state is properly set
+      setTimeout(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect') || '/';
+        console.log('LoginForm: Navigating to:', redirectTo);
+        navigate(redirectTo);
+      }, 200);
+      
+      console.log('LoginForm: Login completed, navigation scheduled...');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setErrors({
+        email: error.message || 'Login failed. Please check your credentials.'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };return (
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
       <div className="space-y-6">
-        <FormField label="Email" type="email" placeholder="Email address" icon={<AtSignIcon />} required error={errors.email} />
-        <PasswordInput label="Password" placeholder="Password" required error={errors.password} />
+        <FormField 
+          name="email"
+          label="Email" 
+          type="email" 
+          placeholder="Email address" 
+          icon={<AtSignIcon />} 
+          required 
+          error={errors.email} 
+        />
+        <PasswordInput 
+          name="password"
+          label="Password" 
+          placeholder="Password" 
+          required 
+          error={errors.password} 
+        />
       </div>
       <div className="flex items-center justify-between">
         <label className="flex items-center group cursor-pointer select-none">
@@ -51,8 +90,8 @@ export const LoginForm = () => {
         </button>
         <button type="button" className="flex items-center justify-center gap-3 px-6 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:border-gray-300 hover:shadow-sm group">
           <img src="https://www.apple.com/favicon.ico" alt="" className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-          <span className="text-gray-700 font-medium">Apple</span>
-        </button>
+          <span className="text-gray-700 font-medium">Apple</span>        </button>
       </div>
-    </form>;
+    </form>
+  );
 };

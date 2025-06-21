@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MenuIcon, X as XIcon, ShoppingCartIcon } from 'lucide-react';
+import { MenuIcon, X as XIcon, ShoppingCartIcon, UserIcon, LogOutIcon } from 'lucide-react';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const {
     scrollDirection,
     isAtTop
@@ -12,6 +15,7 @@ const Header = () => {
   const {
     cartCount
   } = useCart();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isVisible = scrollDirection === 'up' || isAtTop;
@@ -67,16 +71,34 @@ const Header = () => {
                 </Link>)}
             </div>
           </div>
-          <div className="flex items-center space-x-6">
-            <Link to="/cart" className="p-2 text-gray-600 hover:text-primary-600 transition-all duration-200 relative group" aria-label="Shopping cart">
+          <div className="flex items-center space-x-6">            <Link to="/cart" className="p-2 text-gray-600 hover:text-primary-600 transition-all duration-200 relative group" aria-label="Shopping cart">
               <ShoppingCartIcon className="h-5 w-5" />
               {cartCount > 0 && <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center bg-secondary-500 text-white text-[10px] font-semibold rounded-full transition-transform duration-300 transform scale-100 group-hover:scale-110">
                   {cartCount}
                 </span>}
             </Link>
-            <Link to="/auth" className="hidden md:flex px-6 py-2 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-full text-sm font-medium transition-all duration-300">
-              Sign In
-            </Link>
+            
+            {user ? (
+              <div className="hidden md:flex items-center space-x-4">
+                <div className="flex items-center space-x-2 px-4 py-2 bg-gray-50 rounded-full">
+                  <UserIcon className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {user.firstName || user.email}
+                  </span>
+                </div>
+                <button 
+                  onClick={logout}
+                  className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                  aria-label="Logout"
+                >
+                  <LogOutIcon className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <Link to="/auth" className="hidden md:flex px-6 py-2 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-full text-sm font-medium transition-all duration-300">
+                Sign In
+              </Link>
+            )}
             <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Menu">
               <MenuIcon className="h-6 w-6 text-gray-700" />
             </button>

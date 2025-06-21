@@ -15,7 +15,7 @@ try {
     console.log('✅ database utilities loaded');
     
     // Test if all routes load
-    const authRoutes = require('./routes/auth');
+    const authRoutes = require('./routes/auth.js');
     console.log('✅ auth routes loaded');
     
     const mealsRoutes = require('./routes/meals');

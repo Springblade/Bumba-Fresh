@@ -28,12 +28,7 @@ export const SignupForm = () => {
       };
 
       await register(userData);
-      
-      // Add a small delay to ensure the auth state is properly set
-      setTimeout(() => {
-        console.log('SignupForm: Navigating to home...');
-        navigate('/');
-      }, 200);
+      navigate('/');
     } catch (error) {
       setErrors({
         email: 'Registration failed. Please try again.'

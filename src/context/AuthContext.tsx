@@ -31,14 +31,19 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  // Check for existing authentication on app load
+  const navigate = useNavigate();  // Check for existing authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('AuthContext: Checking authentication on app load...');
       const token = localStorage.getItem('authToken');
+      console.log('AuthContext: Found token:', !!token);
+      
       if (token) {
         try {
+          console.log('AuthContext: Verifying token...');
           const response = await verifyToken();
+          console.log('AuthContext: Token verification response:', response);
+          
           const userData = {
             id: response.user.id.toString(),
             email: response.user.email,
@@ -48,20 +53,32 @@ export function AuthProvider({
             address: typeof response.user.address === 'string' ? undefined : response.user.address
           };
           setUser(userData);
+          console.log('AuthContext: User set from token verification:', userData);
         } catch (error) {
-          console.error('Token verification failed:', error);
+          console.error('AuthContext: Token verification failed:', error);
           // Clear invalid tokens
           localStorage.removeItem('authToken');
           localStorage.removeItem('currentUser');
           setUser(null);
           
-          // Only redirect if on a protected route
+          // Only redirect if on a protected route and not already on auth page
           const protectedRoutes = ['/cart', '/checkout', '/payment', '/account'];
-          if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
+          const currentPath = window.location.pathname;
+          if (protectedRoutes.some(route => currentPath.startsWith(route)) && currentPath !== '/auth') {
+            console.log('AuthContext: Redirecting to /auth from protected route:', currentPath);
             navigate('/auth');
           }
         }
+      } else {
+        // Check if there's cached user data when there's no token
+        const cachedUser = localStorage.getItem('currentUser');
+        if (cachedUser) {
+          // Clear stale cached data
+          console.log('AuthContext: Clearing stale cached user data');
+          localStorage.removeItem('currentUser');
+        }
       }
+      console.log('AuthContext: Setting isLoading to false');
       setIsLoading(false);
     };
 
@@ -97,6 +114,7 @@ export function AuthProvider({
       setUser(userData);
       
       console.log('Login successful, user set:', userData);
+      console.log('Current pathname after login:', window.location.pathname);
     } catch (error) {
       console.error('Login failed:', error);
       // Clear any existing auth data on login failure

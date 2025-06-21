@@ -10,26 +10,67 @@ import { useAuth } from '../context/AuthContext';
 export const LoginForm = () => {  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrors({});
-
-    try {
+    setErrors({});    try {
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
-      const password = formData.get('password') as string;      await login(email, password);
+      const password = formData.get('password') as string;
+
+      await login(email, password);
       
-      // Add a small delay to ensure the auth state is properly set
+      // Role-based redirection logic
+      // Get user data from localStorage which is set immediately in login function
       setTimeout(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/';
-        console.log('LoginForm: Navigating to:', redirectTo);
-        navigate(redirectTo);
-      }, 200);
+        const storedUser = localStorage.getItem('currentUser');
+        let loggedInUser = null;
+        
+        if (storedUser) {
+          try {
+            loggedInUser = JSON.parse(storedUser);
+          } catch (e) {
+            console.error('Error parsing stored user data:', e);
+          }
+        }
+        
+        // Fallback to context user if localStorage parsing fails
+        if (!loggedInUser) {
+          loggedInUser = user;
+        }
+        
+        if (loggedInUser?.role) {
+          console.log('LoginForm: User role detected:', loggedInUser.role);
+          
+          // Role-based redirection as per Authorization.md requirements
+          switch (loggedInUser.role) {
+            case 'admin':
+              console.log('LoginForm: Redirecting admin to /admin');
+              navigate('/admin');
+              break;
+            case 'dietitian':
+              console.log('LoginForm: Redirecting dietitian to /dietitian');
+              navigate('/dietitian');
+              break;
+            case 'user':
+            default:
+              // Handle redirect parameter for users or default to home
+              const urlParams = new URLSearchParams(window.location.search);
+              const redirectTo = urlParams.get('redirect') || '/';
+              console.log('LoginForm: Redirecting user to:', redirectTo);
+              navigate(redirectTo);
+              break;
+          }
+        } else {
+          // Fallback if role is not available
+          console.log('LoginForm: No role detected, redirecting to home');
+          navigate('/');
+        }
+      }, 100); // Reduced timeout since we're using localStorage
       
-      console.log('LoginForm: Login completed, navigation scheduled...');
+      console.log('LoginForm: Login completed, role-based navigation scheduled...');
     } catch (error: any) {
       console.error('Login error:', error);
       setErrors({

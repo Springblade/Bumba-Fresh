@@ -17,6 +17,7 @@ CREATE TABLE account (
     last_name VARCHAR(100),
     phone VARCHAR(20),
     address TEXT,
+    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'dietitian')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
 );
@@ -66,8 +67,8 @@ CREATE TABLE plan (
 -- Insert some sample data
 
 -- Sample admin account (password: 'password123')
-INSERT INTO account (email, password, first_name, last_name) VALUES 
-('admin@gmail.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeeSLyEQZFjbBCHs2', 'Admin', 'User');
+INSERT INTO account (email, password, first_name, last_name, role) VALUES 
+('admin@gmail.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeeSLyEQZFjbBCHs2', 'Admin', 'User', 'admin');
 
 -- Sample meals
 INSERT INTO inventory (meal, description, quantity, price, category, dietary_options) VALUES 
@@ -78,6 +79,7 @@ INSERT INTO inventory (meal, description, quantity, price, category, dietary_opt
 
 -- Create indexes for better performance
 CREATE INDEX idx_account_email ON account(email);
+CREATE INDEX idx_account_role ON account(role);
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_meal_orders_order_id ON meal_orders(order_id);
 CREATE INDEX idx_meal_orders_meal_id ON meal_orders(meal_id);

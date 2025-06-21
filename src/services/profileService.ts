@@ -34,31 +34,25 @@ interface UpdateProfileData {
 }
 
 class ProfileService {
-
   async getUserProfile(): Promise<ProfileResponse> {
-    // For now, use mock data from localStorage since the database is not fully connected
+    // Updated to work with real authentication system from Duc-Database branch
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
       throw new Error('No user data found');
     }
 
     const userData = JSON.parse(currentUser);
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    const fullUserData = fakeUsers.find((u: any) => u.email === userData.email);
-
-    if (!fullUserData) {
-      throw new Error('User profile not found');
-    }
-
-    // Create profile data matching the interface
+    
+    // Use the currentUser data directly since we have real authentication
+    // No need to look in fakeUsers array anymore
     const profile: ProfileData = {
       id: userData.id,
-      username: fullUserData.email.split('@')[0], // Generate username from email
+      username: userData.email.split('@')[0], // Generate username from email
       email: userData.email,
       firstName: userData.firstName,
       lastName: userData.lastName,
-      phone: fullUserData.phone || '',
-      address: fullUserData.address || '',
+      phone: userData.phone || '',
+      address: userData.address ? (typeof userData.address === 'string' ? userData.address : `${userData.address.street || ''}, ${userData.address.city || ''}, ${userData.address.state || ''} ${userData.address.zip || ''}`.trim()) : '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -73,9 +67,8 @@ class ProfileService {
 
     return { profile, stats };
   }
-
   async updateUserProfile(data: UpdateProfileData): Promise<{ message: string; profile: ProfileData }> {
-    // For now, update the localStorage data since the database is not fully connected
+    // Updated to work with real authentication system
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
       throw new Error('No user data found');
@@ -83,26 +76,14 @@ class ProfileService {
 
     const userData = JSON.parse(currentUser);
     
-    // Update the current user data
+    // Update the current user data with new profile information
     const updatedUserData = {
       ...userData,
       firstName: data.firstName || userData.firstName,
-      lastName: data.lastName || userData.lastName
+      lastName: data.lastName || userData.lastName,
+      phone: data.phone || userData.phone || '',
+      address: data.address || userData.address || ''
     };
-
-    // Update fakeUsers array
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    const userIndex = fakeUsers.findIndex((u: any) => u.email === userData.email);
-    
-    if (userIndex !== -1) {
-      fakeUsers[userIndex] = {
-        ...fakeUsers[userIndex],
-        fullName: `${updatedUserData.firstName} ${updatedUserData.lastName}`,
-        phone: data.phone || fakeUsers[userIndex].phone || '',
-        address: data.address || fakeUsers[userIndex].address || ''
-      };
-      localStorage.setItem('fakeUsers', JSON.stringify(fakeUsers));
-    }
 
     // Update current user in localStorage
     localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
@@ -114,8 +95,8 @@ class ProfileService {
       email: updatedUserData.email,
       firstName: updatedUserData.firstName,
       lastName: updatedUserData.lastName,
-      phone: data.phone || '',
-      address: data.address || '',
+      phone: updatedUserData.phone || '',
+      address: typeof updatedUserData.address === 'string' ? updatedUserData.address : (updatedUserData.address ? `${updatedUserData.address.street || ''}, ${updatedUserData.address.city || ''}, ${updatedUserData.address.state || ''} ${updatedUserData.address.zip || ''}`.trim() : ''),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

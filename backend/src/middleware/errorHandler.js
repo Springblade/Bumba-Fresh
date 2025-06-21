@@ -2,72 +2,46 @@
  * Error handling middleware
  */
 const errorHandler = (err, req, res, next) => {
-  console.error('Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
+  let error = { ...err };
+  error.message = err.message;
 
-  // Default error
-  let error = {
-    status: 500,
-    message: 'Internal server error'
-  };
+  // Log error
+  console.error('API Error:', err);
 
-  // Validation errors
+  // Mongoose bad ObjectId
+  if (err.name === 'CastError') {
+    const message = 'Resource not found';
+    error = { message, statusCode: 404 };
+  }
+
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const message = 'Duplicate field value entered';
+    error = { message, statusCode: 400 };
+  }
+
+  // Mongoose validation error
   if (err.name === 'ValidationError') {
-    error.status = 400;
-    error.message = 'Validation failed';
-    error.details = err.details;
+    const message = Object.values(err.errors).map(val => val.message);
+    error = { message, statusCode: 400 };
   }
 
-  // Database connection errors
-  if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
-    error.status = 503;
-    error.message = 'Database connection failed';
+  // PostgreSQL duplicate key error
+  if (err.code === '23505') {
+    const message = 'Duplicate field value entered';
+    error = { message, statusCode: 400 };
   }
 
-  // PostgreSQL errors
-  if (err.code && err.code.startsWith('23')) { // Constraint violations
-    error.status = 409;
-    error.message = 'Data conflict';
-    
-    if (err.code === '23505') { // Unique constraint violation
-      error.message = 'Resource already exists';
-    }
+  // PostgreSQL foreign key constraint error
+  if (err.code === '23503') {
+    const message = 'Referenced resource not found';
+    error = { message, statusCode: 400 };
   }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    error.status = 401;
-    error.message = 'Invalid token';
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    error.status = 401;
-    error.message = 'Token expired';
-  }
-
-  // Rate limiting errors
-  if (err.message && err.message.includes('rate limit')) {
-    error.status = 429;
-    error.message = 'Too many requests';
-  }
-
-  // Don't expose internal errors in production
-  if (process.env.NODE_ENV === 'production' && error.status === 500) {
-    error.message = 'Something went wrong';
-  }
-
-  res.status(error.status).json({
-    error: error.message,
-    ...(error.details && { details: error.details }),
-    ...(process.env.NODE_ENV === 'development' && { 
-      stack: err.stack,
-      originalError: err.message 
-    })
+  res.status(error.statusCode || 500).json({
+    success: false,
+    message: error.message || 'Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
 

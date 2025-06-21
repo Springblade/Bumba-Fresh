@@ -10,20 +10,17 @@ class OrderManager {
    * @param {number} userId - User ID
    * @param {number} totalPrice - Total order price
    * @param {string} status - Order status (default: 'pending')
-   * @param {string} orderType - Order type ('individual' or 'subscription')
-   * @param {string} deliveryAddress - Delivery address
-   * @param {number} planId - Subscription plan ID (optional)
    * @returns {Promise<Object>} Operation result with order ID
    */
-  static async addOrder(userId, totalPrice, status = 'pending', orderType = 'individual', deliveryAddress = null, planId = null) {
+  static async addOrder(userId, totalPrice, status = 'pending') {
     const query = `
-      INSERT INTO "order" (user_id, plan_id, total_price, status, order_type, delivery_address) 
-      VALUES ($1, $2, $3, $4, $5, $6) 
-      RETURNING order_id, user_id, total_price, status, order_type, order_date
+      INSERT INTO "order" (user_id, total_price, status) 
+      VALUES ($1, $2, $3) 
+      RETURNING order_id, user_id, total_price, status, order_date
     `;
     
     try {
-      const result = await db.query(query, [userId, planId, totalPrice, status, orderType, deliveryAddress]);
+      const result = await db.query(query, [userId, totalPrice, status]);
       
       return {
         success: true,
@@ -38,17 +35,14 @@ class OrderManager {
       };
     }
   }
-
   /**
    * Get order by ID
    * @param {number} orderId - Order ID
    * @returns {Promise<Object|null>} Order object or null
-   */
-  static async getOrderById(orderId) {
+   */  static async getOrderById(orderId) {
     const query = `
-      SELECT o.order_id, o.user_id, o.plan_id, o.total_price, o.status, 
-             o.order_type, o.delivery_address, o.order_date, o.updated_at,
-             a.username, a.email, a.first_name, a.last_name
+      SELECT o.order_id, o.user_id, o.total_price, o.status, o.order_date,
+             a.email, a.first_name, a.last_name
       FROM "order" o
       JOIN account a ON o.user_id = a.user_id
       WHERE o.order_id = $1
@@ -62,17 +56,14 @@ class OrderManager {
       return null;
     }
   }
-
   /**
    * Get orders by user ID
    * @param {number} userId - User ID
    * @param {string} status - Optional status filter
    * @returns {Promise<Array>} Array of orders
-   */
-  static async getOrdersByUserId(userId, status = null) {
+   */  static async getOrdersByUserId(userId, status = null) {
     let query = `
-      SELECT order_id, user_id, plan_id, total_price, status, 
-             order_type, delivery_address, order_date, updated_at
+      SELECT order_id, user_id, total_price, status, order_date
       FROM "order" 
       WHERE user_id = $1
     `;
@@ -94,7 +85,6 @@ class OrderManager {
       return [];
     }
   }
-
   /**
    * Update order status
    * @param {number} orderId - Order ID
@@ -104,9 +94,9 @@ class OrderManager {
   static async updateOrderStatus(orderId, status) {
     const query = `
       UPDATE "order" 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP 
+      SET status = $1 
       WHERE order_id = $2
-      RETURNING order_id, status, updated_at
+      RETURNING order_id, status
     `;
     
     try {
@@ -160,12 +150,10 @@ class OrderManager {
    * Get all orders with optional filtering
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} Array of orders
-   */
-  static async getAllOrders(filters = {}) {
+   */  static async getAllOrders(filters = {}) {
     let query = `
-      SELECT o.order_id, o.user_id, o.plan_id, o.total_price, o.status, 
-             o.order_type, o.delivery_address, o.order_date, o.updated_at,
-             a.username, a.email, a.first_name, a.last_name
+      SELECT o.order_id, o.user_id, o.total_price, o.status, o.order_date,
+             a.email, a.first_name, a.last_name
       FROM "order" o
       JOIN account a ON o.user_id = a.user_id
       WHERE 1=1
@@ -178,12 +166,6 @@ class OrderManager {
       paramCount++;
       query += ` AND o.status = $${paramCount}`;
       params.push(filters.status);
-    }
-
-    if (filters.orderType) {
-      paramCount++;
-      query += ` AND o.order_type = $${paramCount}`;
-      params.push(filters.orderType);
     }
 
     if (filters.startDate) {

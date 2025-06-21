@@ -1,53 +1,103 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FormField } from './ui/FormField';
 import { PasswordInput } from './ui/PasswordInput';
 import { Button } from './ui/Button';
 import { AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-export const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
+
+export const LoginForm = () => {  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const {
-    login,
-    user,
-    isLoading: authLoading
-  } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const isRegistered = searchParams.get('registered') === '1';
-  const next = searchParams.get('next') || '/';
-  useEffect(() => {
-    if (!authLoading && user) {
-      navigate(next);
-    }
-  }, [user, authLoading, navigate, next]);
-  const handleSubmit = async (e: React.FormEvent) => {
+  const { login, user } = useAuth();
+  
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrors({});
-    const formData = new FormData(e.target as HTMLFormElement);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    try {
+    setErrors({});    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+
       await login(email, password);
-    } catch (error) {
+      
+      // Role-based redirection logic
+      // Get user data from localStorage which is set immediately in login function
+      setTimeout(() => {
+        const storedUser = localStorage.getItem('currentUser');
+        let loggedInUser = null;
+        
+        if (storedUser) {
+          try {
+            loggedInUser = JSON.parse(storedUser);
+          } catch (e) {
+            console.error('Error parsing stored user data:', e);
+          }
+        }
+        
+        // Fallback to context user if localStorage parsing fails
+        if (!loggedInUser) {
+          loggedInUser = user;
+        }
+        
+        if (loggedInUser?.role) {
+          console.log('LoginForm: User role detected:', loggedInUser.role);
+          
+          // Role-based redirection as per Authorization.md requirements
+          switch (loggedInUser.role) {
+            case 'admin':
+              console.log('LoginForm: Redirecting admin to /admin');
+              navigate('/admin');
+              break;
+            case 'dietitian':
+              console.log('LoginForm: Redirecting dietitian to /dietitian');
+              navigate('/dietitian');
+              break;
+            case 'user':
+            default:
+              // Handle redirect parameter for users or default to home
+              const urlParams = new URLSearchParams(window.location.search);
+              const redirectTo = urlParams.get('redirect') || '/';
+              console.log('LoginForm: Redirecting user to:', redirectTo);
+              navigate(redirectTo);
+              break;
+          }
+        } else {
+          // Fallback if role is not available
+          console.log('LoginForm: No role detected, redirecting to home');
+          navigate('/');
+        }
+      }, 100); // Reduced timeout since we're using localStorage
+      
+      console.log('LoginForm: Login completed, role-based navigation scheduled...');
+    } catch (error: any) {
+      console.error('Login error:', error);
       setErrors({
-        email: 'Invalid email or password'
+        email: error.message || 'Login failed. Please check your credentials.'
       });
     } finally {
       setIsLoading(false);
     }
-  };
-  return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
-      {isRegistered && <div className="p-4 rounded-lg bg-success-50 border border-success-200 text-success-700">
-          Registration successful. Please log in.
-        </div>}
+  };return (
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
       <div className="space-y-6">
-        <FormField name="email" label="Email" type="email" placeholder="Email address" icon={<AtSignIcon />} required error={errors.email} />
-        <PasswordInput name="password" label="Password" placeholder="Password" required error={errors.password} />
+        <FormField 
+          name="email"
+          label="Email" 
+          type="email" 
+          placeholder="Email address" 
+          icon={<AtSignIcon />} 
+          required 
+          error={errors.email} 
+        />
+        <PasswordInput 
+          name="password"
+          label="Password" 
+          placeholder="Password" 
+          required 
+          error={errors.password} 
+        />
       </div>
       <div className="flex items-center justify-between">
         <label className="flex items-center group cursor-pointer select-none">
@@ -81,8 +131,8 @@ export const LoginForm = () => {
         </button>
         <button type="button" className="flex items-center justify-center gap-3 px-6 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:border-gray-300 hover:shadow-sm group">
           <img src="https://www.apple.com/favicon.ico" alt="" className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-          <span className="text-gray-700 font-medium">Apple</span>
-        </button>
+          <span className="text-gray-700 font-medium">Apple</span>        </button>
       </div>
-    </form>;
+    </form>
+  );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy } from 'react'
+import { Suspense, lazy } from 'react'
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,6 +22,9 @@ import { ErrorProvider } from './context/ErrorContext'
 import { ErrorBoundaryWrapper } from './components/ErrorBoundaryWrapper'
 import { ErrorBoundaryContainer } from './components/ErrorBoundaryContainer'
 import { ScrollToTop } from './components/ScrollToTop'
+import { AdminDashboard } from './pages/AdminDashboard'
+import { DietitianDashboard } from './pages/DietitianDashboard'
+
 // Lazy load non-critical pages
 const MenuPage = lazy(() => import('./pages/MenuPage'))
 const AuthPage = lazy(() =>
@@ -36,12 +39,12 @@ const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'))
 const ConfigureSubscriptionPage = lazy(
   () => import('./pages/ConfigureSubscriptionPage'),
 )
+
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
   </div>
 )
-
 
 // New RootLayout component
 const RootLayout = () => {
@@ -66,6 +69,7 @@ const RootLayout = () => {
     </div>
   )
 }
+
 export function App() {
   return (
     <ErrorBoundaryContainer name="Application">
@@ -96,6 +100,11 @@ export function App() {
                       }
                     />
                     <Route path="subscribe" element={<SubscriptionPage />} />
+                    
+                    {/* Role-based Dashboard Routes */}
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/dietitian" element={<DietitianDashboard />} />
+                    
                     {/* Protected Routes */}
                     <Route
                       path="configure-subscription"

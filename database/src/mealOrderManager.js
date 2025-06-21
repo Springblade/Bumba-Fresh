@@ -69,12 +69,10 @@ class MealOrderManager {
    * Get all meals for a specific order
    * @param {number} orderId - Order ID
    * @returns {Promise<Array>} Array of order meals with meal details
-   */
-  static async getMealsByOrderId(orderId) {
+   */  static async getMealsByOrderId(orderId) {
     const query = `
       SELECT om.order_id, om.meal_id, om.quantity, om.unit_price,
-             i.meal, i.description, i.category, i.dietary_info, 
-             i.prep_time, i.calories, i.image_url
+             i.meal, i.quantity as available_quantity, i.price
       FROM order_meal om
       JOIN inventory i ON om.meal_id = i.meal_id
       WHERE om.order_id = $1
@@ -95,12 +93,11 @@ class MealOrderManager {
    * @param {number} mealId - Meal ID
    * @param {number} limit - Optional limit (default: 50)
    * @returns {Promise<Array>} Array of orders containing this meal
-   */
-  static async getOrdersByMealId(mealId, limit = 50) {
+   */  static async getOrdersByMealId(mealId, limit = 50) {
     const query = `
       SELECT om.order_id, om.quantity, om.unit_price,
              o.user_id, o.total_price, o.status, o.order_date,
-             a.username, a.first_name, a.last_name
+             a.email, a.first_name, a.last_name
       FROM order_meal om
       JOIN "order" o ON om.order_id = o.order_id
       JOIN account a ON o.user_id = a.user_id
@@ -218,10 +215,9 @@ class MealOrderManager {
    * Get meal popularity statistics
    * @param {Object} filters - Optional date filters
    * @returns {Promise<Array>} Array of meals with order statistics
-   */
-  static async getMealPopularityStats(filters = {}) {
+   */  static async getMealPopularityStats(filters = {}) {
     let query = `
-      SELECT om.meal_id, i.meal, i.category,
+      SELECT om.meal_id, i.meal,
              COUNT(om.order_id) as times_ordered,
              SUM(om.quantity) as total_quantity_ordered,
              AVG(om.unit_price) as average_price,
@@ -254,7 +250,7 @@ class MealOrderManager {
     }
 
     query += `
-      GROUP BY om.meal_id, i.meal, i.category
+      GROUP BY om.meal_id, i.meal
       ORDER BY total_quantity_ordered DESC
     `;
 

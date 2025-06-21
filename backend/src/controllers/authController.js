@@ -40,13 +40,12 @@ const register = async (req, res) => {
     const token = jwt.sign(
       { 
         userId: result.user.user_id, 
-        email: result.user.email 
+        email: result.user.email,
+        role: result.user.role
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    res.status(201).json({
+    );    res.status(201).json({
       message: 'User registered successfully',
       user: {
         id: result.user.user_id,
@@ -54,7 +53,8 @@ const register = async (req, res) => {
         firstName: result.user.first_name,
         lastName: result.user.last_name,
         phone: result.user.phone,
-        address: result.user.address
+        address: result.user.address,
+        role: result.user.role
       },
       token
     });
@@ -95,13 +95,12 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { 
         userId: result.user.user_id, 
-        email: result.user.email 
+        email: result.user.email,
+        role: result.user.role
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    res.json({
+    );    res.json({
       message: 'Login successful',
       user: {
         id: result.user.user_id,
@@ -109,7 +108,8 @@ const login = async (req, res) => {
         firstName: result.user.first_name,
         lastName: result.user.last_name,
         phone: result.user.phone,
-        address: result.user.address
+        address: result.user.address,
+        role: result.user.role
       },
       token
     });

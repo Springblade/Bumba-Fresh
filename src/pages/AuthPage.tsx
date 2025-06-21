@@ -8,29 +8,41 @@ import { useNavigate } from 'react-router-dom';
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const { user, isLoading } = useAuth();
-  const navigate = useNavigate();  // Redirect if already logged in (disabled to avoid conflicts with LoginForm navigation)
+  const navigate = useNavigate();
+  // Role-based redirection for already logged-in users (only when on auth page)
   useEffect(() => {
     console.log('AuthPage useEffect triggered:', { 
       user: user?.email, 
+      role: user?.role,
       isLoading, 
       pathname: window.location.pathname 
     });
     
-    // Temporarily disable auto-redirect to troubleshoot the navigation issue
-    // The LoginForm will handle navigation after successful login
-    
-    /*
-    if (!isLoading && user) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get('redirect') || '/';
-      console.log('AuthPage redirecting to:', redirectTo);
+    // Only redirect if we're actually on the auth page and user is logged in
+    const currentPath = window.location.pathname;
+    if (!isLoading && user && currentPath === '/auth') {
+      console.log('AuthPage: User already logged in on auth page, implementing role-based redirection');
       
-      // Add a small delay to ensure login process is complete
-      setTimeout(() => {
-        navigate(redirectTo);
-      }, 100);
+      // Role-based redirection as per Authorization.md requirements
+      switch (user.role) {
+        case 'admin':
+          console.log('AuthPage: Redirecting admin to /admin');
+          navigate('/admin');
+          break;
+        case 'dietitian':
+          console.log('AuthPage: Redirecting dietitian to /dietitian');
+          navigate('/dietitian');
+          break;
+        case 'user':
+        default:
+          // Handle redirect parameter for users or default to home
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTo = urlParams.get('redirect') || '/';
+          console.log('AuthPage: Redirecting user to:', redirectTo);
+          navigate(redirectTo);
+          break;
+      }
     }
-    */
   }, [user, isLoading, navigate]);
   return <main className="min-h-screen w-full flex items-center justify-center p-4 md:p-6 relative">
       {/* Keep only the dot pattern as a unique overlay */}

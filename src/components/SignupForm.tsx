@@ -29,6 +29,15 @@ export const SignupForm = () => {
 
       await register(userData);
       
+      // TODO: ROLE-BASED REDIRECTION IMPLEMENTATION NEEDED HERE
+      // Requirements from Authorization.md:
+      // - When one registers from the website, it is automatically a 'user' account
+      // - Users should be redirected to the main website (/) after registration
+      // 
+      // Current implementation already navigates to '/' which is correct for 'user' role
+      // No changes needed here since new registrations are always 'user' accounts
+      // and should go to the main website
+      
       // Add a small delay to ensure the auth state is properly set
       setTimeout(() => {
         console.log('SignupForm: Navigating to home...');

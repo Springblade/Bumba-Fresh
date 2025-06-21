@@ -14,6 +14,7 @@ type User = {
   firstName: string;
   lastName: string;
   address?: Address;
+  role: string;
 };
 type AuthContextType = {
   user: User | null;
@@ -41,8 +42,7 @@ export function AuthProvider({
       if (token) {
         try {
           console.log('AuthContext: Verifying token...');
-          const response = await verifyToken();
-          console.log('AuthContext: Token verification response:', response);
+          const response = await verifyToken();          console.log('AuthContext: Token verification response:', response);
           
           const userData = {
             id: response.user.id.toString(),
@@ -50,7 +50,8 @@ export function AuthProvider({
             firstName: response.user.firstName,
             lastName: response.user.lastName,
             // Parse address if it exists and is a string, otherwise keep as Address object
-            address: typeof response.user.address === 'string' ? undefined : response.user.address
+            address: typeof response.user.address === 'string' ? undefined : response.user.address,
+            role: response.user.role
           };
           setUser(userData);
           console.log('AuthContext: User set from token verification:', userData);
@@ -98,14 +99,14 @@ export function AuthProvider({
       console.log('Attempting login with:', { email });
       const response = await loginUser({ email, password });
       console.log('Login response:', response);
-      
-      const userData = {
+        const userData = {
         id: response.user.id.toString(),
         email: response.user.email,
         firstName: response.user.firstName,
         lastName: response.user.lastName,
         // Parse address if it exists and is a string, otherwise keep as Address object
-        address: typeof response.user.address === 'string' ? undefined : response.user.address
+        address: typeof response.user.address === 'string' ? undefined : response.user.address,
+        role: response.user.role
       };
 
       // Store token and user data
@@ -135,7 +136,8 @@ export function AuthProvider({
         firstName: response.user.firstName,
         lastName: response.user.lastName,
         // Parse address if it exists and is a string, otherwise keep as Address object
-        address: typeof response.user.address === 'string' ? undefined : response.user.address
+        address: typeof response.user.address === 'string' ? undefined : response.user.address,
+        role: response.user.role // TODO: ROLE-BASED REDIRECTION - Role is available here for registration
       };
 
       // Store token and user data
@@ -144,6 +146,15 @@ export function AuthProvider({
       setUser(userInfo);
       
       console.log('Registration successful, user set:', userInfo);
+      
+      // TODO: ROLE-BASED REDIRECTION IMPLEMENTATION NEEDED HERE
+      // Requirements from Authorization.md:
+      // - When one registers from the website, it is automatically a 'user' account
+      // - Users should be redirected to the main website (/) after registration
+      // 
+      // Note: New registrations will always have role === 'user' as per backend logic
+      // The registration redirection logic should be implemented in the signup form components
+      
     } catch (error) {
       console.error('Registration failed:', error);
       // Clear any existing auth data on registration failure

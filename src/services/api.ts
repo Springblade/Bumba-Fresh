@@ -23,6 +23,7 @@ export interface AuthResponse {
     lastName: string;
     phone?: string;
     address?: string;
+    role: string;
   };
   token: string;
 }

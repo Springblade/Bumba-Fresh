@@ -7,6 +7,8 @@ import { AuthPage } from './pages/AuthPage';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
 import ConfirmationPage from './pages/ConfirmationPage';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { DietitianDashboard } from './pages/DietitianDashboard';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -20,8 +22,7 @@ export function App() {
             <div className="fixed inset-0 pointer-events-none bg-gradient-to-b from-primary-50/70 to-transparent" />
             <div className="fixed top-1/4 right-0 w-96 h-96 bg-primary-100 rounded-full filter blur-3xl opacity-20 animate-float"></div>
             <div className="relative z-10 flex flex-col w-full">
-              <Header />
-              <main className="flex-grow w-full">
+              <Header />              <main className="flex-grow w-full">
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/menu" element={<MenuPage />} />
@@ -29,6 +30,8 @@ export function App() {
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/checkout/payment" element={<PaymentPage />} />
                   <Route path="/checkout/confirmation" element={<ConfirmationPage />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/dietitian" element={<DietitianDashboard />} />
                 </Routes>
               </main>
               <Footer />

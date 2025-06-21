@@ -5,9 +5,9 @@ const { Pool } = require('pg');
 const pool = new Pool({
   host: 'localhost',
   port: 5432,
-  database: 'mealkits',
+  database: 'Bumba_fresh',
   user: 'postgres',
-  password: '22092004A'
+  password: '999999'
 });
 
 async function testDatabase() {
@@ -33,7 +33,7 @@ async function testDatabase() {
       
       // Test password verification
       console.log('\nTesting password verification:');
-      const passwords = ['admin123', 'password123', 'admin'];
+      const passwords = ['admin123', '123', 'admin'];
       
       for (const pwd of passwords) {
         const isValid = await bcrypt.compare(pwd, user.password);

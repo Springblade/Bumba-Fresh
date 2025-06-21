@@ -16,15 +16,20 @@ export const CartItem = ({
   image
 }: CartItemProps) => {
   const {
-    addToCart,
-    removeFromCart
+    removeFromCart,
+    incrementQuantity,
+    decrementQuantity
   } = useCart();
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity === 0) {
+  
+  const handleIncrement = () => {
+    incrementQuantity(id);
+  };
+  
+  const handleDecrement = () => {
+    if (quantity === 1) {
       removeFromCart(id);
     } else {
-      // Since our addToCart increases by 1, we'll need to modify this
-      // TODO: Add proper quantity adjustment to CartContext
+      decrementQuantity(id);
     }
   };
   return <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -36,14 +41,13 @@ export const CartItem = ({
       <div className="flex-1 min-w-0">
         <h4 className="text-base font-medium text-gray-900 truncate">{name}</h4>
         <div className="mt-1 text-sm font-medium text-gray-900">{price}</div>
-      </div>
-      {/* Quantity controls */}
+      </div>      {/* Quantity controls */}
       <div className="flex items-center gap-2">
-        <button onClick={() => handleQuantityChange(quantity - 1)} className="p-1 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+        <button onClick={handleDecrement} className="p-1 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
           <Minus className="w-4 h-4" />
         </button>
         <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-        <button onClick={() => handleQuantityChange(quantity + 1)} className="p-1 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+        <button onClick={handleIncrement} className="p-1 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
           <Plus className="w-4 h-4" />
         </button>
       </div>

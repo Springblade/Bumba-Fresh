@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
 const { validationResult } = require('express-validator');
-const authMiddleware = require('./auth');
+const authMiddleware = require('../middleware/authMiddleware');
 const { OrderManager, MealOrderManager } = require('../../../database/src');
 
 const router = express.Router();
@@ -156,15 +156,61 @@ const createOrderValidation = [
 ];
 
 // Validation rules
-const orderIdValidation = [
-  param('id')
+const orderIdValidation = [  param('id')
     .isNumeric()
     .withMessage('Order ID must be a number')
 ];
 
+// Get meals for a specific order
+const getOrderMeals = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    // First verify the order belongs to the user
+    const orderResult = await OrderManager.getOrderByIdAndUserId(id, userId);
+    
+    if (!orderResult.success) {
+      if (orderResult.message === 'Order not found') {
+        return res.status(404).json({
+          error: 'Order not found',
+          message: 'Order does not exist or does not belong to you'
+        });
+      }
+      return res.status(500).json({
+        error: 'Database error',
+        message: orderResult.message
+      });
+    }
+
+    // Get meals for the order
+    const meals = await MealOrderManager.getMealsByOrderId(id);
+    
+    res.json({
+      message: 'Order meals retrieved successfully',
+      meals: meals
+    });
+  } catch (error) {
+    console.error('Get order meals error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch order meals'
+    });
+  }
+};
+
 // Routes
 router.get('/', authMiddleware, getAllOrders);
 router.get('/:id', authMiddleware, orderIdValidation, getOrderById);
+router.get('/:id/meals', authMiddleware, orderIdValidation, getOrderMeals);
 router.post('/', authMiddleware, createOrderValidation, createOrder);
 
 module.exports = router;

@@ -34,14 +34,19 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(({
         <div className="relative">
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             <LockIcon className="h-5 w-5" />
-          </div>
-          <input ref={ref} type={showPassword ? 'text' : 'password'} className={`
+          </div>          <input 
+            ref={ref} 
+            type={showPassword ? 'text' : 'password'} 
+            className={`
               w-full rounded-lg border ${error ? 'border-red-300' : 'border-gray-300'}
               pl-10 pr-10 py-2.5
               text-gray-900 placeholder:text-gray-500
               focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
               transition-colors duration-200
-            `} onChange={handleChange} {...props} />
+            `} 
+            onChange={handleChange} 
+            {...props} 
+          />
           <button type="button" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
           </button>

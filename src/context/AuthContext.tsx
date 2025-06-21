@@ -144,12 +144,14 @@ export function AuthProvider({
       setUser(userInfo);
       
       console.log('Registration successful, user set:', userInfo);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration failed:', error);
       // Clear any existing auth data on registration failure
       localStorage.removeItem('authToken');
       localStorage.removeItem('currentUser');
       setUser(null);
+      
+      // Preserve the original error message for better debugging
       throw error;
     }
   };

@@ -44,11 +44,25 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
   });
   
   console.log('Response status:', response.status, response.statusText);
-  
-  if (!response.ok) {
+    if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     console.error('API Error Response:', error);
-    throw new Error(error.message || `API error: ${response.status}`);
+    
+    // Create a more detailed error message for frontend handling
+    let errorMessage = error.message || error.error || `API error: ${response.status}`;
+    
+    // If validation failed, include field-specific details
+    if (error.details && Array.isArray(error.details)) {
+      const fieldErrors = error.details.map((detail: any) => `${detail.path}: ${detail.msg}`).join(', ');
+      errorMessage = `Validation failed: ${fieldErrors}`;
+    }
+    
+    // For email conflicts, provide a clearer message
+    if (response.status === 409 && errorMessage.includes('email')) {
+      errorMessage = 'Email already exists';
+    }
+    
+    throw new Error(errorMessage);
   }
   
   const data = await response.json();

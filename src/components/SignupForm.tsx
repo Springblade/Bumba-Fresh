@@ -27,6 +27,13 @@ export const SignupForm = () => {
         password: formData.get('password') as string,
       };
 
+      console.log('SignupForm: Submitting registration with data:', {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        passwordLength: userData.password?.length
+      });
+
       await register(userData);
       
       // Add a small delay to ensure the auth state is properly set
@@ -34,10 +41,40 @@ export const SignupForm = () => {
         console.log('SignupForm: Navigating to home...');
         navigate('/');
       }, 200);
-    } catch (error) {
-      setErrors({
-        email: 'Registration failed. Please try again.'
-      });
+    } catch (error: any) {
+      console.error('SignupForm: Registration error:', error);
+      
+      // Parse error messages from backend validation
+      if (error.message) {
+        const errorMessage = error.message;
+        const newErrors: Record<string, string> = {};
+        
+        // Handle validation errors with field details
+        if (errorMessage.includes('Validation failed:')) {
+          if (errorMessage.includes('password:')) {
+            newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and number';
+          }
+          if (errorMessage.includes('email:')) {
+            newErrors.email = 'Please provide a valid email address';
+          }
+          if (errorMessage.includes('firstName:')) {
+            newErrors.firstName = 'First name is required';
+          }
+          if (errorMessage.includes('lastName:')) {
+            newErrors.lastName = 'Last name is required';
+          }
+        } else if (errorMessage.includes('Email already exists')) {
+          newErrors.email = 'An account with this email already exists. Please try logging in instead.';
+        } else {
+          newErrors.email = errorMessage || 'Registration failed. Please try again.';
+        }
+        
+        setErrors(newErrors);
+      } else {
+        setErrors({
+          email: 'Registration failed. Please try again.'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +122,11 @@ export const SignupForm = () => {
           error={errors.password} 
           showStrengthMeter 
         />
+        {!errors.password && (
+          <p className="text-xs text-gray-500 mt-1">
+            Password must be at least 8 characters with uppercase, lowercase, and number
+          </p>
+        )}
       </div>
       <div className="flex items-start group cursor-pointer select-none">
         <div className="flex items-center h-5">

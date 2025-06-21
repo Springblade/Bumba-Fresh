@@ -44,14 +44,15 @@ bumba/
    cd bumba
    ```
 
-2. Install dependencies:
+2. Install dependencies for both backend and frontend:
    ```
    npm install
+   npm install pg
    ```
 
-3. Start the development server:
+3. Start the development for both server:
    ```
-   npm run dev
+   npm run dev or run the start-dev.bat
    ```
 
 4. Open your browser and navigate to `http://localhost:####`

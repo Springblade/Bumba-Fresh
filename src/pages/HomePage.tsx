@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
 import HowItWorks from '../components/HowItWorks';
@@ -28,11 +28,9 @@ const HomePage = () => {
     }, observerOptions);
     sections.forEach(section => observer.observe(section));
     return () => observer.disconnect();
-  }, []);
-  return <div className="flex flex-col w-full">
+  }, []);  return <div className="flex flex-col w-full">
       <HeroSection />
-      <FeaturesSection />
-      <MealCategories />
+      <FeaturesSection />      <MealCategories />
       <HowItWorks />
       <PricingSection />
       <Testimonials />

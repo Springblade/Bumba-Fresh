@@ -11,6 +11,7 @@ const mealsRoutes = require('./routes/meals');
 const ordersRoutes = require('./routes/orders');
 const plansRoutes = require('./routes/plans');
 const usersRoutes = require('./routes/users');
+const deliveryRoutes = require('./routes/delivery');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -71,10 +72,10 @@ app.use('/api/meals', mealsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/delivery', deliveryRoutes);
 
 // Root endpoint
-app.get('/', (req, res) => {
-  res.json({
+app.get('/', (req, res) => {  res.json({
     message: 'Bumba Fresh API',
     version: '1.0.0',
     status: 'running',
@@ -84,7 +85,8 @@ app.get('/', (req, res) => {
       meals: '/api/meals',
       orders: '/api/orders',
       plans: '/api/plans',
-      users: '/api/users'
+      users: '/api/users',
+      delivery: '/api/delivery'
     }
   });
 });

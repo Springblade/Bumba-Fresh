@@ -4,31 +4,22 @@ const db = require('./connect');
  * Inventory management utility - JavaScript equivalent of Inventory_Management.java
  * Enhanced with comprehensive meal management functionality
  */
-class InventoryManager {
-  /**
+class InventoryManager {  /**
    * Add a new meal to inventory
    * @param {string} meal - Meal name
-   * @param {string} description - Meal description
    * @param {number} quantity - Available quantity
    * @param {number} price - Meal price
-   * @param {string} category - Meal category
-   * @param {Array} dietaryInfo - Array of dietary information
-   * @param {number} prepTime - Preparation time in minutes
-   * @param {number} calories - Calorie content
-   * @param {string} imageUrl - Image URL
    * @returns {Promise<Object>} Operation result
    */
-  static async addMealKit(meal, description = null, quantity, price, category = null, dietaryInfo = [], prepTime = null, calories = null, imageUrl = null) {
+  static async addMealKit(meal, quantity, price) {
     const query = `
-      INSERT INTO inventory (meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-      RETURNING meal_id, meal, description, quantity, price, category, dietary_info, prep_time, calories, image_url, created_at
+      INSERT INTO inventory (meal, quantity, price) 
+      VALUES ($1, $2, $3) 
+      RETURNING meal_id, meal, quantity, price
     `;
     
     try {
-      const result = await db.query(query, [
-        meal, description, quantity, price, category, dietaryInfo, prepTime, calories, imageUrl
-      ]);
+      const result = await db.query(query, [meal, quantity, price]);
       
       return {
         success: true,
@@ -43,7 +34,6 @@ class InventoryManager {
       };
     }
   }
-
   /**
    * Update meal quantity in inventory
    * @param {number} mealId - Meal ID
@@ -53,9 +43,9 @@ class InventoryManager {
   static async updateMealQuantity(mealId, quantity) {
     const query = `
       UPDATE inventory 
-      SET quantity = $1, updated_at = CURRENT_TIMESTAMP 
-      WHERE meal_id = $2 AND is_active = true
-      RETURNING meal_id, meal, quantity, updated_at
+      SET quantity = $1 
+      WHERE meal_id = $2
+      RETURNING meal_id, meal, quantity
     `;
     
     try {
@@ -64,7 +54,7 @@ class InventoryManager {
       if (result.rows.length === 0) {
         return {
           success: false,
-          message: 'Meal not found or inactive'
+          message: 'Meal not found'
         };
       }
       
@@ -81,7 +71,6 @@ class InventoryManager {
       };
     }
   }
-
   /**
    * Update meal price
    * @param {number} mealId - Meal ID
@@ -91,9 +80,9 @@ class InventoryManager {
   static async updateMealPrice(mealId, price) {
     const query = `
       UPDATE inventory 
-      SET price = $1, updated_at = CURRENT_TIMESTAMP 
-      WHERE meal_id = $2 AND is_active = true
-      RETURNING meal_id, meal, price, updated_at
+      SET price = $1 
+      WHERE meal_id = $2
+      RETURNING meal_id, meal, price
     `;
     
     try {
@@ -102,7 +91,7 @@ class InventoryManager {
       if (result.rows.length === 0) {
         return {
           success: false,
-          message: 'Meal not found or inactive'
+          message: 'Meal not found'
         };
       }
       
@@ -119,7 +108,6 @@ class InventoryManager {
       };
     }
   }
-
   /**
    * Get meal by ID
    * @param {number} mealId - Meal ID
@@ -127,9 +115,7 @@ class InventoryManager {
    */
   static async getMealById(mealId) {
     const query = `
-      SELECT meal_id, meal, description, quantity, price, category, 
-             dietary_info, prep_time, calories, image_url, is_active, 
-             created_at, updated_at
+      SELECT meal_id, meal, quantity, price
       FROM inventory 
       WHERE meal_id = $1
     `;
@@ -142,31 +128,22 @@ class InventoryManager {
       return null;
     }
   }
-
   /**
-   * Get all active meals
+   * Get all meals
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} Array of meals
    */
   static async getAllMeals(filters = {}) {
     let query = `
-      SELECT meal_id, meal, description, quantity, price, category, 
-             dietary_info, prep_time, calories, image_url, is_active, 
-             created_at, updated_at
+      SELECT meal_id, meal, quantity, price
       FROM inventory 
-      WHERE is_active = true
+      WHERE 1=1
     `;
     
     const params = [];
     let paramCount = 0;
 
-    // Add filters
-    if (filters.category) {
-      paramCount++;
-      query += ` AND category = $${paramCount}`;
-      params.push(filters.category);
-    }
-
+    // Add price filters
     if (filters.maxPrice) {
       paramCount++;
       query += ` AND price <= $${paramCount}`;
@@ -189,7 +166,6 @@ class InventoryManager {
       return [];
     }
   }
-
   /**
    * Check if meal is available in sufficient quantity
    * @param {number} mealId - Meal ID
@@ -200,7 +176,7 @@ class InventoryManager {
     const query = `
       SELECT quantity 
       FROM inventory 
-      WHERE meal_id = $1 AND is_active = true
+      WHERE meal_id = $1
     `;
     
     try {
@@ -216,7 +192,6 @@ class InventoryManager {
       return false;
     }
   }
-
   /**
    * Decrease meal quantity (for orders)
    * @param {number} mealId - Meal ID
@@ -226,9 +201,9 @@ class InventoryManager {
   static async decreaseMealQuantity(mealId, quantity) {
     const query = `
       UPDATE inventory 
-      SET quantity = quantity - $1, updated_at = CURRENT_TIMESTAMP 
-      WHERE meal_id = $2 AND is_active = true AND quantity >= $1
-      RETURNING meal_id, meal, quantity, updated_at
+      SET quantity = quantity - $1 
+      WHERE meal_id = $2 AND quantity >= $1
+      RETURNING meal_id, meal, quantity
     `;
     
     try {
@@ -254,7 +229,6 @@ class InventoryManager {
       };
     }
   }
-
   /**
    * Get low stock meals (quantity below threshold)
    * @param {number} threshold - Quantity threshold (default: 10)
@@ -264,7 +238,7 @@ class InventoryManager {
     const query = `
       SELECT meal_id, meal, quantity, price 
       FROM inventory 
-      WHERE is_active = true AND quantity <= $1
+      WHERE quantity <= $1
       ORDER BY quantity ASC
     `;
     

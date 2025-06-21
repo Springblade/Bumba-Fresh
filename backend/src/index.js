@@ -42,7 +42,7 @@ app.use('/api/auth/register', authLimiter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -100,6 +100,12 @@ app.use('*', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Bumba Fresh API server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
@@ -115,12 +121,6 @@ process.on('SIGINT', () => {
     console.log('Process terminated');
     process.exit(0);
   });
-});
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Bumba Fresh API server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 });
 
 module.exports = app;

@@ -1,23 +1,51 @@
 const express = require('express');
-const { body } = require('express-validator');
-const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/auth');
+const { body, param, query } = require('express-validator');
+const authMiddleware = require('./auth');
 
 const router = express.Router();
 
-// Validation rules for profile updates
+// Placeholder route handlers
+const getUserProfile = async (req, res) => {
+  try {
+    res.json({
+      message: 'User profile endpoint available',
+      user: req.user || null
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch user profile'
+    });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    res.json({
+      message: 'Update user profile endpoint available',
+      user: req.user || null
+    });
+  } catch (error) {
+    console.error('Update user profile error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to update user profile'
+    });
+  }
+};
+
+// Validation rules
 const updateProfileValidation = [
   body('firstName')
     .optional()
     .isLength({ min: 1, max: 100 })
-    .withMessage('First name must be between 1 and 100 characters')
-    .trim(),
+    .withMessage('First name must be between 1 and 100 characters'),
   
   body('lastName')
     .optional()
     .isLength({ min: 1, max: 100 })
-    .withMessage('Last name must be between 1 and 100 characters')
-    .trim(),
+    .withMessage('Last name must be between 1 and 100 characters'),
   
   body('phone')
     .optional()
@@ -28,28 +56,10 @@ const updateProfileValidation = [
     .optional()
     .isLength({ max: 500 })
     .withMessage('Address must be less than 500 characters')
-    .trim()
 ];
 
-// Validation rules for password updates
-const updatePasswordValidation = [
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('Current password is required'),
-  
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('New password must be at least 8 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number')
-];
-
-// All user routes require authentication
-router.use(authMiddleware);
-
-// Profile routes
-router.get('/profile', userController.getUserProfile);
-router.put('/profile', updateProfileValidation, userController.updateUserProfile);
-router.put('/password', updatePasswordValidation, userController.updatePassword);
+// Routes (all protected)
+router.get('/profile', authMiddleware, getUserProfile);
+router.put('/profile', authMiddleware, updateProfileValidation, updateUserProfile);
 
 module.exports = router;

@@ -1,51 +1,66 @@
 const express = require('express');
-const { body } = require('express-validator');
-const authMiddleware = require('../middleware/auth');
+const { body, param, query } = require('express-validator');
+const authMiddleware = require('./auth');
 
 const router = express.Router();
 
-// Validation rules for plan operations
-const createPlanValidation = [
-  body('subscriptionPlan')
-    .isIn(['basic', 'premium', 'signature'])
-    .withMessage('Invalid subscription plan type'),
-  
-  body('mealsPerWeek')
-    .isInt({ min: 1, max: 10 })
-    .withMessage('Meals per week must be between 1 and 10'),
-  
-  body('pricePerMeal')
-    .isFloat({ min: 0 })
-    .withMessage('Price per meal must be a positive number'),
-  
-  body('billingCycle')
-    .isIn(['weekly', 'monthly'])
-    .withMessage('Billing cycle must be weekly or monthly')
+// Placeholder route handlers
+const getAllPlans = async (req, res) => {
+  try {
+    res.json({
+      message: 'Plans endpoint available',
+      plans: []
+    });
+  } catch (error) {
+    console.error('Get plans error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch plans'
+    });
+  }
+};
+
+const getPlanById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    res.json({
+      message: `Plan ${id} endpoint available`,
+      plan: null
+    });
+  } catch (error) {
+    console.error('Get plan error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch plan'
+    });
+  }
+};
+
+const createPlan = async (req, res) => {
+  try {
+    res.json({
+      message: 'Create plan endpoint available',
+      plan: null
+    });
+  } catch (error) {
+    console.error('Create plan error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to create plan'
+    });
+  }
+};
+
+// Validation rules
+const planIdValidation = [
+  param('id')
+    .isNumeric()
+    .withMessage('Plan ID must be a number')
 ];
 
-// All plan routes require authentication
-router.use(authMiddleware);
-
-// Placeholder endpoints - to be implemented later
-router.get('/', (req, res) => {
-  res.json({
-    message: 'Plans endpoint - coming soon',
-    endpoint: '/api/plans'
-  });
-});
-
-router.post('/', createPlanValidation, (req, res) => {
-  res.json({
-    message: 'Create plan endpoint - coming soon',
-    endpoint: 'POST /api/plans'
-  });
-});
-
-router.get('/:id', (req, res) => {
-  res.json({
-    message: 'Get plan by ID endpoint - coming soon',
-    endpoint: 'GET /api/plans/:id'
-  });
-});
+// Routes
+router.get('/', getAllPlans);
+router.get('/:id', planIdValidation, getPlanById);
+router.post('/', authMiddleware, createPlan);
 
 module.exports = router;

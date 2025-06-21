@@ -1,14 +1,22 @@
 const bcrypt = require('bcryptjs');
-const db = require('../js/connect');
+const db = require('./connect');
 
 /**
  * Account creation utility - JavaScript equivalent of Create.java
  * Enhanced with proper password hashing and parameterized queries
+ * 
+ * Actual database schema for account table:
+ * - user_id: integer (PRIMARY KEY, AUTO_INCREMENT)
+ * - password: text
+ * - email: character varying
+ * - first_name: character varying
+ * - last_name: character varying  
+ * - phone: character varying
+ * - address: text
  */
 class AccountCreator {
   /**
    * Create a new user account
-   * @param {string} username - User's username
    * @param {string} password - User's password (will be hashed)
    * @param {string} email - User's email
    * @param {string} firstName - User's first name
@@ -17,14 +25,8 @@ class AccountCreator {
    * @param {string} address - User's address
    * @returns {Promise<Object>} Created user object or error
    */
-  static async createAccount(username, password, email = null, firstName = null, lastName = null, phone = null, address = null) {
+  static async createAccount(password, email = null, firstName = null, lastName = null, phone = null, address = null) {
     try {
-      // Check if username is unique
-      const isUnique = await this.isUsernameUnique(username);
-      if (!isUnique) {
-        throw new Error('Username already exists');
-      }
-
       // Check if email is unique (if provided)
       if (email) {
         const isEmailUnique = await this.isEmailUnique(email);
@@ -37,8 +39,8 @@ class AccountCreator {
       const saltRounds = 12;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Insert the new user
-      const result = await this.insertUser(username, hashedPassword, email, firstName, lastName, phone, address);
+      // Insert the new user (user_id will auto-increment)
+      const result = await this.insertUser(hashedPassword, email, firstName, lastName, phone, address);
       
       return {
         success: true,
@@ -53,10 +55,8 @@ class AccountCreator {
       };
     }
   }
-
   /**
    * Insert a new user into the database
-   * @param {string} username - Username
    * @param {string} hashedPassword - Hashed password
    * @param {string} email - Email
    * @param {string} firstName - First name
@@ -65,14 +65,14 @@ class AccountCreator {
    * @param {string} address - Address
    * @returns {Promise<Object>} Database result
    */
-  static async insertUser(username, hashedPassword, email, firstName, lastName, phone, address) {
+  static async insertUser(hashedPassword, email, firstName, lastName, phone, address) {
     const query = `
-      INSERT INTO account (username, password, email, first_name, last_name, phone, address) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7) 
-      RETURNING user_id, username, email, first_name, last_name, created_at
+      INSERT INTO account (password, email, first_name, last_name, phone, address) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING user_id, email, first_name, last_name, phone, address
     `;
     
-    const params = [username, hashedPassword, email, firstName, lastName, phone, address];
+    const params = [hashedPassword, email, firstName, lastName, phone, address];
     
     try {
       const result = await db.query(query, params);
@@ -82,22 +82,14 @@ class AccountCreator {
       throw error;
     }
   }
-
   /**
    * Check if username is unique
    * @param {string} username - Username to check
    * @returns {Promise<boolean>} True if unique, false otherwise
    */
   static async isUsernameUnique(username) {
-    const query = 'SELECT user_id FROM account WHERE username = $1';
-    
-    try {
-      const result = await db.query(query, [username]);
-      return result.rows.length === 0;
-    } catch (error) {
-      console.error('Error checking username uniqueness:', error);
-      return false;
-    }
+    // Username column has been removed - always return true
+    return true;
   }
 
   /**
@@ -115,37 +107,14 @@ class AccountCreator {
       console.error('Error checking email uniqueness:', error);
       return false;
     }
-  }
-
-  /**
-   * Get user by username
-   * @param {string} username - Username to search for
-   * @returns {Promise<Object|null>} User object or null if not found
-   */
-  static async getUserByUsername(username) {
-    const query = `
-      SELECT user_id, username, email, first_name, last_name, phone, address, created_at 
-      FROM account 
-      WHERE username = $1
-    `;
-    
-    try {
-      const result = await db.query(query, [username]);
-      return result.rows.length > 0 ? result.rows[0] : null;
-    } catch (error) {
-      console.error('Error getting user by username:', error);
-      return null;
-    }
-  }
-
-  /**
+  }  /**
    * Get user by email
    * @param {string} email - Email to search for
    * @returns {Promise<Object|null>} User object or null if not found
    */
   static async getUserByEmail(email) {
     const query = `
-      SELECT user_id, username, email, first_name, last_name, phone, address, created_at 
+      SELECT user_id, email, first_name, last_name, phone, address 
       FROM account 
       WHERE email = $1
     `;

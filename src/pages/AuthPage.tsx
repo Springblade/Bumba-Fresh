@@ -1,9 +1,37 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SignupForm } from '../components/SignupForm';
 import { LoginForm } from '../components/LoginForm';
 import { SparklesIcon, ArrowRightIcon, ArrowLeftIcon } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();  // Redirect if already logged in (disabled to avoid conflicts with LoginForm navigation)
+  useEffect(() => {
+    console.log('AuthPage useEffect triggered:', { 
+      user: user?.email, 
+      isLoading, 
+      pathname: window.location.pathname 
+    });
+    
+    // Temporarily disable auto-redirect to troubleshoot the navigation issue
+    // The LoginForm will handle navigation after successful login
+    
+    /*
+    if (!isLoading && user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect') || '/';
+      console.log('AuthPage redirecting to:', redirectTo);
+      
+      // Add a small delay to ensure login process is complete
+      setTimeout(() => {
+        navigate(redirectTo);
+      }, 100);
+    }
+    */
+  }, [user, isLoading, navigate]);
   return <main className="min-h-screen w-full flex items-center justify-center p-4 md:p-6 relative">
       {/* Keep only the dot pattern as a unique overlay */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.03)_1px,transparent_0)] bg-[size:32px_32px] pointer-events-none opacity-70" />

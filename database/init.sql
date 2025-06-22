@@ -2,8 +2,9 @@
 -- Updated to support email-based authentication
 
 -- Drop existing tables if they exist
-DROP TABLE IF EXISTS meal_orders CASCADE;
-DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS delivery CASCADE;
+DROP TABLE IF EXISTS order_meal CASCADE;
+DROP TABLE IF EXISTS "order" CASCADE;
 DROP TABLE IF EXISTS plan CASCADE;
 DROP TABLE IF EXISTS inventory CASCADE;
 DROP TABLE IF EXISTS account CASCADE;
@@ -31,28 +32,25 @@ CREATE TABLE inventory (
     price DECIMAL(10,2) NOT NULL,
     category VARCHAR(100),
     dietary_options VARCHAR(255),
-    image_url VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    image_url VARCHAR(500)
 );
 
 -- Create orders table
-CREATE TABLE orders (
+CREATE TABLE "order" (
     order_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES account(user_id),
-    total_amount DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
     status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create meal_orders table (junction table)
-CREATE TABLE meal_orders (
-    meal_order_id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+CREATE TABLE order_meal (
+    order_meal_id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL REFERENCES "order"(order_id) ON DELETE CASCADE,
     meal_id INTEGER NOT NULL REFERENCES inventory(meal_id),
     quantity INTEGER NOT NULL DEFAULT 1,
-    price DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    unit_price DECIMAL(10,2) NOT NULL
 );
 
 -- Create plan table for subscriptions
@@ -64,18 +62,19 @@ CREATE TABLE plan (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert some sample data
-
--- Sample admin account (password: 'password123')
-INSERT INTO account (email, password, first_name, last_name, role) VALUES 
-('admin@gmail.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeeSLyEQZFjbBCHs2', 'Admin', 'User', 'admin');
-
--- Sample meals
-INSERT INTO inventory (meal, description, quantity, price, category, dietary_options) VALUES 
-('Grilled Chicken Salad', 'Fresh grilled chicken with mixed greens and vinaigrette', 50, 12.99, 'Salads', 'Gluten-Free,High-Protein'),
-('Vegetarian Pasta', 'Creamy pasta with seasonal vegetables', 30, 10.99, 'Pasta', 'Vegetarian'),
-('Salmon Teriyaki', 'Grilled salmon with teriyaki glaze and steamed vegetables', 25, 15.99, 'Seafood', 'Gluten-Free,High-Protein'),
-('Quinoa Buddha Bowl', 'Nutritious quinoa bowl with roasted vegetables', 40, 11.99, 'Bowls', 'Vegan,Gluten-Free');
+-- Create delivery table for order deliveries
+CREATE TABLE delivery (
+    delivery_id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL REFERENCES "order"(order_id) ON DELETE CASCADE,
+    delivery_status VARCHAR(50) DEFAULT 'pending',
+    estimated_time TIMESTAMP,
+    delivery_address TEXT NOT NULL,
+    s_firstname VARCHAR(100) NOT NULL,
+    s_lastname VARCHAR(100) NOT NULL,
+    s_phone VARCHAR(20) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Create indexes for better performance
 CREATE INDEX idx_account_email ON account(email);

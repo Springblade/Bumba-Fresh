@@ -41,7 +41,6 @@ export const ProfileSettings = () => {
       loadProfile();
     }
   }, [user]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -49,6 +48,8 @@ export const ProfileSettings = () => {
     setIsLoading(true);
 
     try {
+      console.log('ProfileSettings: Submitting profile update with data:', formData);
+      
       const updateData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -56,7 +57,9 @@ export const ProfileSettings = () => {
         address: formData.address.trim() || undefined
       };
 
+      console.log('ProfileSettings: Prepared update data:', updateData);
       const response = await profileService.updateUserProfile(updateData);
+      console.log('ProfileSettings: Profile update response:', response);
       
       // Update local profile data
       setProfileData(response.profile);
@@ -67,11 +70,14 @@ export const ProfileSettings = () => {
           firstName: response.profile.firstName,
           lastName: response.profile.lastName
         });
+        console.log('ProfileSettings: Updated auth context with new profile data');
       }
 
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
+      console.log('ProfileSettings: Profile update completed successfully');
     } catch (err) {
+      console.error('ProfileSettings: Profile update failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setIsLoading(false);

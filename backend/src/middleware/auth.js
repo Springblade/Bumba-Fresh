@@ -22,11 +22,9 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.substring(7);
 
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Check if user still exists in database
+    const decoded = jwt.verify(token, JWT_SECRET);    // Check if user still exists in database
     const result = await query(
-      'SELECT user_id, username, email FROM account WHERE user_id = $1',
+      'SELECT user_id, email, first_name, last_name FROM account WHERE user_id = $1',
       [decoded.userId]
     );
 
@@ -40,8 +38,9 @@ const authMiddleware = async (req, res, next) => {
     // Add user info to request object
     req.user = {
       id: decoded.userId,
-      username: decoded.username,
-      email: decoded.email
+      email: result.rows[0].email,
+      firstName: result.rows[0].first_name,
+      lastName: result.rows[0].last_name
     };
 
     next();
@@ -83,18 +82,17 @@ const optionalAuth = async (req, res, next) => {
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    const result = await query(
-      'SELECT user_id, username, email FROM account WHERE user_id = $1',
+    const decoded = jwt.verify(token, JWT_SECRET);    const result = await query(
+      'SELECT user_id, email, first_name, last_name FROM account WHERE user_id = $1',
       [decoded.userId]
     );
 
     if (result.rows.length > 0) {
       req.user = {
         id: decoded.userId,
-        username: decoded.username,
-        email: decoded.email
+        email: result.rows[0].email,
+        firstName: result.rows[0].first_name,
+        lastName: result.rows[0].last_name
       };
     } else {
       req.user = null;

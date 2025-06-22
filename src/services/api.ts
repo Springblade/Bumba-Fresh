@@ -33,16 +33,26 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
   console.log('Making API request to:', url);
   console.log('Request options:', options);
   
-  const response = await fetch(url, {
+  // Get auth token
+  const authToken = localStorage.getItem('authToken');
+  
+  // Merge headers properly
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+  };
+  
+  const mergedOptions = {
+    ...options,
     headers: {
-      'Content-Type': 'application/json',
-      // Add auth header when needed
-      ...(localStorage.getItem('authToken') ? {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-      } : {}),
-    },
-    ...options
-  });
+      ...defaultHeaders,
+      ...(options?.headers || {})
+    }
+  };
+  
+  console.log('Merged request headers:', mergedOptions.headers);
+  
+  const response = await fetch(url, mergedOptions);
   
   console.log('Response status:', response.status, response.statusText);
   

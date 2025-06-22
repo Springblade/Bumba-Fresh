@@ -5,7 +5,7 @@ const pool = new Pool({
   port: 5432,
   database: 'Bumba_fresh',
   user: 'postgres',
-  password: '999999'
+  password: '12345'
 });
 
 async function checkAdminAccounts() {

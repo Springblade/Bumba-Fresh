@@ -23,6 +23,7 @@ type AuthContextType = {
   logout: () => void;
   isLoading: boolean;
   updateUserAddress: (newAddress: Address) => void;
+  updateUserProfile: (profileData: { firstName: string; lastName: string }) => void;
 };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
@@ -94,7 +95,8 @@ export function AuthProvider({
     };
     setUser(updatedUser);
     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-  };  const login = async (email: string, password: string) => {
+  };  
+  const login = async (email: string, password: string) => {
     try {
       console.log('Attempting login with:', { email });
       const response = await loginUser({ email, password });
@@ -178,13 +180,25 @@ export function AuthProvider({
     }
   };
 
+  const updateUserProfile = (profileData: { firstName: string; lastName: string }) => {
+    if (!user) return;
+    const updatedUser = {
+      ...user,
+      firstName: profileData.firstName,
+      lastName: profileData.lastName
+    };
+    setUser(updatedUser);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  };
+
   return <AuthContext.Provider value={{
     user,
     login,
     register,
     logout,
     isLoading,
-    updateUserAddress
+    updateUserAddress,
+    updateUserProfile
   }}>
       {children}
     </AuthContext.Provider>;

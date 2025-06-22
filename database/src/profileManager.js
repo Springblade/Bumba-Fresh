@@ -10,11 +10,10 @@ class ProfileManager {
    * Get user profile by ID
    * @param {number} userId - User ID
    * @returns {Promise<Object|null>} User profile or null
-   */
-  static async getUserProfileById(userId) {
+   */  static async getUserProfileById(userId) {
     const query = `
-      SELECT user_id, username, email, first_name, last_name, phone, address, 
-             created_at, updated_at, last_login
+      SELECT user_id, email, first_name, last_name, phone, address, 
+             created_at, last_login
       FROM account 
       WHERE user_id = $1
     `;
@@ -26,9 +25,7 @@ class ProfileManager {
       console.error('Error getting user profile by ID:', error);
       return null;
     }
-  }
-
-  /**
+  }/**
    * Update user profile information
    * @param {number} userId - User ID
    * @param {Object} profileData - Profile data to update
@@ -36,6 +33,18 @@ class ProfileManager {
    */
   static async updateUserProfile(userId, profileData) {
     try {
+      console.log('ProfileManager: Updating profile for user ID:', userId);
+      console.log('ProfileManager: Profile data to update:', profileData);
+      
+      // Validate user ID
+      if (!userId || typeof userId !== 'number') {
+        console.error('ProfileManager: Invalid user ID provided:', userId);
+        return {
+          success: false,
+          message: 'Invalid user ID provided'
+        };
+      }
+
       const allowedFields = ['first_name', 'last_name', 'phone', 'address'];
       const updates = [];
       const values = [];
@@ -43,55 +52,56 @@ class ProfileManager {
 
       // Build dynamic update query based on provided fields
       for (const [key, value] of Object.entries(profileData)) {
-        if (allowedFields.includes(key) && value !== undefined) {
+        if (allowedFields.includes(key) && value !== undefined && value !== null) {
           paramCount++;
           updates.push(`${key} = $${paramCount}`);
           values.push(value);
         }
       }
 
-      if (updates.length === 0) {
+      console.log('ProfileManager: Filtered updates:', updates);
+      console.log('ProfileManager: Values to update:', values);      if (updates.length === 0) {
+        console.log('ProfileManager: No valid fields provided for update');
         return {
           success: false,
           message: 'No valid fields provided for update'
         };
       }
 
-      // Add updated_at timestamp
-      paramCount++;
-      updates.push(`updated_at = $${paramCount}`);
-      values.push(new Date());
-
       // Add user_id for WHERE clause
       paramCount++;
-      values.push(userId);
-
-      const query = `
+      values.push(userId);const query = `
         UPDATE account 
         SET ${updates.join(', ')}
         WHERE user_id = $${paramCount}
-        RETURNING user_id, username, email, first_name, last_name, phone, address, updated_at
+        RETURNING user_id, email, first_name, last_name, phone, address
       `;
 
+      console.log('ProfileManager: Executing query:', query);
+      console.log('ProfileManager: Query values:', values);
+
       const result = await db.query(query, values);
+      console.log('ProfileManager: Query result:', result.rows);
 
       if (result.rows.length === 0) {
+        console.log('ProfileManager: No user found with ID:', userId);
         return {
           success: false,
           message: 'User not found'
         };
       }
 
+      console.log('ProfileManager: Profile updated successfully in database');
       return {
         success: true,
         user: result.rows[0],
         message: 'Profile updated successfully'
       };
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      console.error('ProfileManager: Error updating user profile:', error);
       return {
         success: false,
-        message: 'Failed to update profile'
+        message: `Failed to update profile: ${error.message}`
       };
     }
   }
@@ -177,24 +187,23 @@ class ProfileManager {
    * Get user profile statistics
    * @param {number} userId - User ID
    * @returns {Promise<Object>} User statistics
-   */
-  static async getUserStats(userId) {
+   */  static async getUserStats(userId) {
     try {
       // Get order count and total spent
       const orderQuery = `
         SELECT 
           COUNT(*) as total_orders,
-          COALESCE(SUM(total_price), 0) as total_spent,
+          COALESCE(SUM(total_amount), 0) as total_spent,
           COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders
-        FROM "order"
+        FROM orders
         WHERE user_id = $1
       `;
 
-      // Get active subscription count
+      // Get subscription count (plan table doesn't have is_active, so count all)
       const subscriptionQuery = `
-        SELECT COUNT(*) as active_subscriptions
+        SELECT COUNT(*) as total_subscriptions
         FROM plan
-        WHERE user_id = $1 AND is_active = true
+        WHERE user_id = $1
       `;
 
       const [orderResult, subscriptionResult] = await Promise.all([
@@ -206,7 +215,7 @@ class ProfileManager {
         totalOrders: parseInt(orderResult.rows[0].total_orders),
         totalSpent: parseFloat(orderResult.rows[0].total_spent),
         deliveredOrders: parseInt(orderResult.rows[0].delivered_orders),
-        activeSubscriptions: parseInt(subscriptionResult.rows[0].active_subscriptions)
+        totalSubscriptions: parseInt(subscriptionResult.rows[0].total_subscriptions)
       };
     } catch (error) {
       console.error('Error getting user stats:', error);
@@ -214,7 +223,7 @@ class ProfileManager {
         totalOrders: 0,
         totalSpent: 0,
         deliveredOrders: 0,
-        activeSubscriptions: 0
+        totalSubscriptions: 0
       };
     }
   }

@@ -16,22 +16,22 @@ const dbConfig = {
 // Create PostgreSQL connection pool
 const pool = new Pool(dbConfig);
 
-// Redis client configuration
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://redis:6379'
-});
+// // Redis client configuration
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL || 'redis://redis:6379'
+// });
 
-// Handle Redis connection
-redisClient.on('error', (err) => {
-  console.error('Redis connection error:', err);
-});
+// // Handle Redis connection
+// redisClient.on('error', (err) => {
+//   console.error('Redis connection error:', err);
+// });
 
-redisClient.on('connect', () => {
-  console.log('Connected to Redis');
-});
+// redisClient.on('connect', () => {
+//   console.log('Connected to Redis');
+// });
 
-// Connect to Redis
-redisClient.connect().catch(console.error);
+// // Connect to Redis
+// redisClient.connect().catch(console.error);
 
 // Test database connection
 pool.on('connect', () => {
@@ -82,5 +82,5 @@ module.exports = {
   pool,
   query,
   transaction,
-  redisClient
+  // redisClient
 };

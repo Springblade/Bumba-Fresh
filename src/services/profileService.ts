@@ -1,9 +1,10 @@
 // Profile service for user profile management
-// Currently using localStorage for mock data until database is connected
+// Integrated with backend API for persistent profile updates
+
+import { fetchData } from './api';
 
 interface ProfileData {
   id: string;
-  username: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -35,76 +36,144 @@ interface UpdateProfileData {
 
 class ProfileService {
   async getUserProfile(): Promise<ProfileResponse> {
-    // Updated to work with real authentication system from Duc-Database branch
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      throw new Error('No user data found');
+    try {
+      console.log('ProfileService: Fetching user profile from backend API...');
+      // First try to fetch from backend API
+      const response = await fetchData<ProfileResponse>('/users/profile');
+      console.log('ProfileService: Successfully fetched profile from backend:', response);
+      
+      // Update localStorage with fresh data from backend
+      if (response.profile) {
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+          const userData = JSON.parse(currentUser);
+          const updatedUserData = {
+            ...userData,
+            firstName: response.profile.firstName,
+            lastName: response.profile.lastName,
+            phone: response.profile.phone,
+            address: response.profile.address
+          };
+          localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+          console.log('ProfileService: Updated localStorage with fresh profile data');
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      console.warn('ProfileService: Failed to fetch profile from backend, falling back to localStorage:', error);
+      
+      // Fallback to localStorage if API is unavailable
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) {
+        throw new Error('No user data found');
+      }
+
+      const userData = JSON.parse(currentUser);
+      
+      const profile: ProfileData = {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone || '',
+        address: userData.address ? (typeof userData.address === 'string' ? userData.address : `${userData.address.street || ''}, ${userData.address.city || ''}, ${userData.address.state || ''} ${userData.address.zip || ''}`.trim()) : '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Mock stats for fallback
+      const stats: UserStats = {
+        totalOrders: 0,
+        totalSpent: 0,
+        deliveredOrders: 0,
+        activeSubscriptions: 0
+      };
+
+      console.log('ProfileService: Using fallback localStorage data:', { profile, stats });
+      return { profile, stats };
     }
-
-    const userData = JSON.parse(currentUser);
-    
-    // Use the currentUser data directly since we have real authentication
-    // No need to look in fakeUsers array anymore
-    const profile: ProfileData = {
-      id: userData.id,
-      username: userData.email.split('@')[0], // Generate username from email
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      phone: userData.phone || '',
-      address: userData.address ? (typeof userData.address === 'string' ? userData.address : `${userData.address.street || ''}, ${userData.address.city || ''}, ${userData.address.state || ''} ${userData.address.zip || ''}`.trim()) : '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // Mock stats
-    const stats: UserStats = {
-      totalOrders: 0,
-      totalSpent: 0,
-      deliveredOrders: 0,
-      activeSubscriptions: 0
-    };
-
-    return { profile, stats };
   }
   async updateUserProfile(data: UpdateProfileData): Promise<{ message: string; profile: ProfileData }> {
-    // Updated to work with real authentication system
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      throw new Error('No user data found');
+    try {
+      console.log('ProfileService: Updating user profile via backend API...', data);
+      
+      // Validate required authentication token
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        throw new Error('No authentication token found. Please log in again.');
+      }      // First try to update via backend API
+      const response = await fetchData<{ message: string; profile: ProfileData }>('/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      
+      console.log('ProfileService: Successfully updated profile via backend:', response);
+
+      // Update localStorage with the updated profile data from backend
+      const currentUser = localStorage.getItem('currentUser');
+      if (currentUser && response.profile) {
+        const userData = JSON.parse(currentUser);
+        const updatedUserData = {
+          ...userData,
+          firstName: response.profile.firstName,
+          lastName: response.profile.lastName,
+          phone: response.profile.phone,
+          address: response.profile.address
+        };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+        console.log('ProfileService: Updated localStorage with backend response');
+      }
+
+      return response;
+    } catch (error) {
+      console.warn('ProfileService: Failed to update profile via backend, falling back to localStorage:', error);
+      
+      // Check if this is an authentication error
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('authentication'))) {
+        throw new Error('Authentication failed. Please log in again.');
+      }
+      
+      // Fallback to localStorage update if API is unavailable
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) {
+        throw new Error('No user data found. Please log in again.');
+      }
+
+      const userData = JSON.parse(currentUser);
+      
+      // Update the current user data with new profile information
+      const updatedUserData = {
+        ...userData,
+        firstName: data.firstName || userData.firstName,
+        lastName: data.lastName || userData.lastName,
+        phone: data.phone || userData.phone || '',
+        address: data.address || userData.address || ''
+      };
+
+      // Update current user in localStorage
+      localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+
+      // Create updated profile data
+      const profile: ProfileData = {
+        id: updatedUserData.id,
+        email: updatedUserData.email,
+        firstName: updatedUserData.firstName,
+        lastName: updatedUserData.lastName,
+        phone: updatedUserData.phone || '',
+        address: typeof updatedUserData.address === 'string' ? updatedUserData.address : (updatedUserData.address ? `${updatedUserData.address.street || ''}, ${updatedUserData.address.city || ''}, ${updatedUserData.address.state || ''} ${updatedUserData.address.zip || ''}`.trim() : ''),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log('ProfileService: Using fallback localStorage update:', { profile });
+      console.warn('ProfileService: WARNING - Profile updated only locally. Changes may not persist across sessions.');
+      
+      return {
+        message: 'Profile updated successfully (offline mode - changes saved locally)',
+        profile
+      };
     }
-
-    const userData = JSON.parse(currentUser);
-    
-    // Update the current user data with new profile information
-    const updatedUserData = {
-      ...userData,
-      firstName: data.firstName || userData.firstName,
-      lastName: data.lastName || userData.lastName,
-      phone: data.phone || userData.phone || '',
-      address: data.address || userData.address || ''
-    };
-
-    // Update current user in localStorage
-    localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
-
-    // Create updated profile data
-    const profile: ProfileData = {
-      id: updatedUserData.id,
-      username: updatedUserData.email.split('@')[0],
-      email: updatedUserData.email,
-      firstName: updatedUserData.firstName,
-      lastName: updatedUserData.lastName,
-      phone: updatedUserData.phone || '',
-      address: typeof updatedUserData.address === 'string' ? updatedUserData.address : (updatedUserData.address ? `${updatedUserData.address.street || ''}, ${updatedUserData.address.city || ''}, ${updatedUserData.address.state || ''} ${updatedUserData.address.zip || ''}`.trim() : ''),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    return {
-      message: 'Profile updated successfully',
-      profile
-    };
   }
 }
 

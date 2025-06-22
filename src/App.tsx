@@ -22,6 +22,8 @@ import { ErrorProvider } from './context/ErrorContext'
 import { ErrorBoundaryWrapper } from './components/ErrorBoundaryWrapper'
 import { ErrorBoundaryContainer } from './components/ErrorBoundaryContainer'
 import { ScrollToTop } from './components/ScrollToTop'
+import ChatWidget from './components/chat/ChatWidget'
+import AdminSetup from './components/account/AdminSetup' // Import AdminSetup component
 // Lazy load non-critical pages
 const MenuPage = lazy(() => import('./pages/MenuPage'))
 const AuthPage = lazy(() =>
@@ -36,12 +38,18 @@ const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'))
 const ConfigureSubscriptionPage = lazy(
   () => import('./pages/ConfigureSubscriptionPage'),
 )
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
+const AdminMeals = lazy(() => import('./pages/admin/AdminMeals'))
+const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'))
+const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'))
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
   </div>
 )
-
 
 // New RootLayout component
 const RootLayout = () => {
@@ -62,6 +70,7 @@ const RootLayout = () => {
           </Suspense>
         </main>
         <Footer />
+        <ChatWidget /> {}
       </div>
     </div>
   )
@@ -126,6 +135,7 @@ export function App() {
                         element={<SubscriptionManagement />}
                       />
                       <Route path="settings" element={<ProfileSettings />} />
+                      <Route path="admin-setup" element={<AdminSetup />} /> {/* New admin setup route */}
                     </Route>
                     {/* Protected Checkout Routes */}
                     <Route
@@ -148,6 +158,66 @@ export function App() {
                         </ProtectedRoute>
                       }
                     />
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute isAdminRoute>
+                          <ErrorBoundaryContainer name="Admin">
+                            <AdminLayout />
+                          </ErrorBoundaryContainer>
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route
+                        index
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminDashboard />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="orders"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminOrders />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="meals"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminMeals />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="customers"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminCustomers />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="subscriptions"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminSubscriptions />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="settings"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AdminSettings />
+                          </Suspense>
+                        }
+                      />
+                    </Route>
                   </Route>
                 </Routes>
               </CartProvider>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { User } from '../types/shared'; // Make sure User is imported
 export interface Address {
   street: string;
   city: string;
@@ -7,20 +8,17 @@ export interface Address {
   zip: string;
   country: string;
 }
-type User = {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  address?: Address;
-};
-type AuthContextType = {
+export interface AuthContextType {
   user: User | null;
+  isAuthenticated: boolean; // Make sure this is defined
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  isLoading: boolean;
   updateUserAddress: (newAddress: Address) => void;
-};
+
+  // New admin-specific method
+  setupAdminAccount: (adminKey: string) => Promise<boolean>;
+}
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
   children
@@ -90,13 +88,74 @@ export function AuthProvider({
     setUser(null);
     navigate('/auth');
   };
-  return <AuthContext.Provider value={{
+  // Make sure isAuthenticated is calculated based on user existence
+  const isAuthenticated = !!user;
+
+  // Add the new admin setup function
+  const setupAdminAccount = async (adminKey: string): Promise<boolean> => {
+    try {
+      // Normalize the input by trimming whitespace
+      const normalizedKey = adminKey.trim();
+      // Use exact string comparison with the expected key
+      const expectedKey = 'bumba-admin-2025';
+      
+      console.log('Key validation:', normalizedKey === expectedKey);
+      
+      if (normalizedKey !== expectedKey) {
+        return false;
+      }
+      
+      if (!user) {
+        console.log('No user logged in');
+        return false;
+      }
+      
+      // Create updated user with admin privileges
+      const adminUser = {
+        ...user,
+        isAdmin: true
+      };
+      
+      // Update in localStorage
+      localStorage.setItem('currentUser', JSON.stringify(adminUser));
+      
+      // Also update in fakeUsers array if it exists
+      try {
+        const storedUsers = localStorage.getItem('fakeUsers');
+        if (storedUsers) {
+          const users = JSON.parse(storedUsers);
+          const updatedUsers = users.map((u: any) => 
+            u.email === user.email ? { ...u, isAdmin: true } : u
+          );
+          localStorage.setItem('fakeUsers', JSON.stringify(updatedUsers));
+        }
+      } catch (err) {
+        // Non-critical error, continue
+        console.log('Could not update users array');
+      }
+      
+      // Update state
+      setUser(adminUser);
+      
+      return true;
+    } catch (error) {
+      console.error('Admin setup error:', error);
+      return false;
+    }
+  };
+  
+  // Include the function in your context value
+  const value = {
     user,
+    isAuthenticated,
+    isLoading,
     login,
     logout,
-    isLoading,
-    updateUserAddress
-  }}>
+    updateUserAddress,
+    setupAdminAccount,
+  };
+
+  return <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>;
 }

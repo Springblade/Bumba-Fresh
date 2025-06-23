@@ -10,7 +10,7 @@ interface MealCardProps {
     calories: string;
   };
   onAddToCart: (meal: any) => void;
-  onLike: (id: number) => void;
+  onLike: (id: number) => Promise<void>;
   isLiked: boolean;
   recentlyAdded: boolean;
 }
@@ -24,6 +24,7 @@ const MealCard = memo(({
 }: MealCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   const [animationConfig, setAnimationConfig] = useState<{
     startX: number;
     startY: number;
@@ -47,9 +48,15 @@ const MealCard = memo(({
       onAddToCart(meal);
     }
   }, [meal, onAddToCart]);
-
-  const handleLike = useCallback(() => {
-    onLike(meal.id);
+  const handleLike = useCallback(async () => {
+    setLikeLoading(true);
+    try {
+      await onLike(meal.id);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setLikeLoading(false);
+    }
   }, [meal.id, onLike]);
 
   const getBadgeStyle = useCallback((badge: string) => {
@@ -85,14 +92,36 @@ const MealCard = memo(({
 
         {meal.overlayBadge && <div className={`absolute top-3 left-3 ${getBadgeStyle(meal.overlayBadge)} text-white text-xs font-semibold px-2 py-1 rounded-md uppercase z-10`}>
             {meal.overlayBadge}
-          </div>}
-        <button 
+          </div>}        <motion.button 
           onClick={handleLike} 
-          className="absolute top-3 right-3 p-1.5 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow" 
+          disabled={likeLoading}
+          whileTap={{ scale: 0.9 }}
+          className={`absolute top-3 right-3 p-1.5 bg-white rounded-full shadow-sm hover:shadow-md transition-all duration-200 ${
+            likeLoading ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105'
+          }`}
           aria-label={isLiked ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <HeartIcon className={`w-5 h-5 ${isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-        </button>
+          {likeLoading ? (
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin" />
+          ) : (
+            <motion.div
+              initial={false}
+              animate={{ 
+                scale: isLiked ? [1, 1.3, 1] : 1,
+                rotate: isLiked ? [0, -10, 10, 0] : 0
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <HeartIcon 
+                className={`w-5 h-5 transition-all duration-200 ${
+                  isLiked 
+                    ? 'text-red-500 fill-red-500 drop-shadow-sm' 
+                    : 'text-gray-400 hover:text-red-400'
+                }`} 
+              />
+            </motion.div>
+          )}
+        </motion.button>
       </div>
       <div className="flex flex-col flex-grow p-4">
         <h3 className="text-lg font-semibold mb-2 text-gray-900">

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, lazy, memo } from 'react';
+import { useCallback, useMemo, useState, memo } from 'react';
 import { Heart as HeartIcon, Check as CheckIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 interface MealCardProps {
@@ -12,7 +12,7 @@ interface MealCardProps {
     overlayBadge?: string;
   };
   onAddToCart: (meal: any) => void;
-  onLike: (id: number) => void;
+  onLike: (id: number) => Promise<void>;
   isLiked: boolean;
   recentlyAdded: boolean;
 }
@@ -24,12 +24,20 @@ export const MealCard = memo(({
   recentlyAdded
 }: MealCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   // Memoize handlers
   const handleAddToCart = useCallback(() => {
     onAddToCart(meal);
   }, [meal, onAddToCart]);
-  const handleLike = useCallback(() => {
-    onLike(meal.id);
+  const handleLike = useCallback(async () => {
+    setLikeLoading(true);
+    try {
+      await onLike(meal.id);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setLikeLoading(false);
+    }
   }, [meal.id, onLike]);
   // Memoize image URL with size parameters
   const imageUrl = useMemo(() => {

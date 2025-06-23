@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState, memo } from 'react';
+import { useCallback, useState, memo } from 'react';
 import { Utensils as UtensilsIcon, Sparkles as SparklesIcon, User as UserIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import FilterModal from './FilterModal';
 import MealCard from '../features/meals/components/MealCard';
 import GradientText from './GradientText';
 import { useMealFilter } from '../hooks/useMealFilter';
+import { useFavorites } from '../hooks/useFavorites';
 import { FilterSystem } from './meals/FilterSystem';
 import { BaseMeal } from '../types/shared';
 import { MealCardSkeleton } from './ui/MealCardSkeleton';
@@ -253,16 +254,11 @@ export const meals: Meal[] = [{
 const OurMeals = () => {
   const { addToCart } = useCart();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [recentlyAdded, setRecentlyAdded] = useState<number[]>([]);
-  const [likedMeals, setLikedMeals] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem('likedMeals');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading liked meals:', error);
-      return [];
-    }
-  });
+  const [recentlyAdded, setRecentlyAdded] = useState<number[]>([]);  // Use the favorites hook instead of local state
+  const { 
+    likedMeals, 
+    toggleFavorite
+  } = useFavorites();
 
   // Use the custom hook for filtering
   const {
@@ -288,22 +284,16 @@ const OurMeals = () => {
       setRecentlyAdded(prev => prev.filter(id => id !== meal.id));
     }, 1500);
   }, [addToCart]);
-
-  const toggleLike = useCallback((id: number) => {
-    setLikedMeals(current => current.includes(id) ? current.filter(mealId => mealId !== id) : [...current, id]);
-  }, []);
-
-  // Save liked meals to localStorage
-  useEffect(() => {
+  // Handle favorite toggle with backend integration
+  const handleToggleLike = useCallback(async (id: number) => {
     try {
-      localStorage.setItem('likedMeals', JSON.stringify(likedMeals));
+      await toggleFavorite(id);
     } catch (error) {
-      console.error('Error saving liked meals:', error);
+      console.error('Error toggling favorite:', error);
     }
-  }, [likedMeals]);
+  }, [toggleFavorite]);
 
-  return (
-    <section className="w-full pt-16 pb-20">
+  return (    <section className="w-full pt-16 pb-20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4" role="heading">
@@ -341,12 +331,11 @@ const OurMeals = () => {
           totalResults={totalResults} 
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {isLoading ? <MealCardSkeleton /> : paginatedMeals.map(meal => (
-            <MealCard 
+          {isLoading ? <MealCardSkeleton /> : paginatedMeals.map(meal => (            <MealCard 
               key={meal.id} 
               meal={meal} 
               onAddToCart={handleAddToCart} 
-              onLike={toggleLike} 
+              onLike={handleToggleLike} 
               isLiked={likedMeals.includes(meal.id)} 
               recentlyAdded={recentlyAdded.includes(meal.id)} 
             />

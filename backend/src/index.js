@@ -11,6 +11,7 @@ const mealsRoutes = require('./routes/meals');
 const ordersRoutes = require('./routes/orders');
 const plansRoutes = require('./routes/plans');
 const usersRoutes = require('./routes/users');
+const favoritesRoutes = require('./routes/favorites');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -26,7 +27,7 @@ app.use(compression());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 10000, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
@@ -34,7 +35,7 @@ app.use('/api/', limiter);
 // More strict rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: 10000, // Limit each IP to 5 requests per windowMs
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/api/auth/login', authLimiter);
@@ -89,6 +90,7 @@ app.use('/api/meals', mealsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/favorites', favoritesRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -97,12 +99,12 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     status: 'running',
     endpoints: {
-      health: '/health',
-      auth: '/api/auth',
+      health: '/health',      auth: '/api/auth',
       meals: '/api/meals',
       orders: '/api/orders',
       plans: '/api/plans',
-      users: '/api/users'
+      users: '/api/users',
+      favorites: '/api/favorites'
     }
   });
 });

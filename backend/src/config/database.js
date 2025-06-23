@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const redis = require('redis');
+// const redis = require('redis');
 
 // PostgreSQL connection configuration
 const dbConfig = {

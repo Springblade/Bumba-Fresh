@@ -5,39 +5,40 @@ import { Button } from './ui/Button';
 import { UserIcon, AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 export const SignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const { register } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
+
     const formData = new FormData(e.target as HTMLFormElement);
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    // Get existing users or initialize empty array
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    // Check if email already exists
-    if (fakeUsers.some((user: any) => user.email === email)) {
-      setErrors({
-        email: 'Email already registered'
+
+    try {
+      await register({
+        firstName,
+        lastName,
+        email,
+        password
       });
+      
+      // Registration successful, redirect to main page
+      navigate('/');
+    } catch (error) {
+      setErrors({
+        email: 'Registration failed. Please try again.'
+      });
+    } finally {
       setIsLoading(false);
-      return;
     }
-    // Add new user
-    const newUser = {
-      id: Math.random().toString(36).substr(2, 9),
-      fullName: `${firstName} ${lastName}`,
-      email,
-      password
-    };
-    fakeUsers.push(newUser);
-    localStorage.setItem('fakeUsers', JSON.stringify(fakeUsers));
-    setIsLoading(false);
-    navigate('/auth?registered=1');
   };
   return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
       <div className="space-y-6">

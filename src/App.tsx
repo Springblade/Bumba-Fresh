@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy } from 'react'
+import { Suspense, lazy } from 'react'
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,6 +16,7 @@ import { ToastProvider } from './context/ToastContext'
 import { MyAccountPageLayout } from './components/layouts/MyAccountPageLayout'
 import { AccountDashboard } from './components/account/AccountDashboard'
 import { OrderHistory } from './components/account/OrderHistory'
+import { OrderDetails } from './components/account/OrderDetails'
 import { SubscriptionManagement } from './components/account/SubscriptionManagement'
 import { ProfileSettings } from './components/account/ProfileSettings'
 import { ErrorProvider } from './context/ErrorContext'
@@ -24,6 +25,7 @@ import { ErrorBoundaryContainer } from './components/ErrorBoundaryContainer'
 import { ScrollToTop } from './components/ScrollToTop'
 import ChatWidget from './components/chat/ChatWidget'
 import AdminSetup from './components/account/AdminSetup' // Import AdminSetup component
+
 // Lazy load non-critical pages
 const MenuPage = lazy(() => import('./pages/MenuPage'))
 const AuthPage = lazy(() =>
@@ -126,10 +128,10 @@ export function App() {
                           </ErrorBoundaryContainer>
                         </ProtectedRoute>
                       }
-                    >
-                      <Route index element={<AccountDashboard />} />
+                    >                      <Route index element={<AccountDashboard />} />
                       <Route path="dashboard" element={<AccountDashboard />} />
                       <Route path="orders" element={<OrderHistory />} />
+                      <Route path="orders/:orderId" element={<OrderDetails />} />
                       <Route
                         path="subscription"
                         element={<SubscriptionManagement />}

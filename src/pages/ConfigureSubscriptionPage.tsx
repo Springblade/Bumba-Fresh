@@ -5,12 +5,22 @@ import { CheckIcon, ChevronRightIcon, AlertCircleIcon, XIcon } from 'lucide-reac
 import { useCart } from '../context/CartContext';
 import { Button } from '../components/ui/Button';
 import GradientText from '../components/GradientText';
-import { meals } from '../components/OurMeals';
+import { getAllMeals, Meal } from '../services/meals';
 import { plans } from '../data/subscriptionPlans';
 
 // Types
 type Week = 1 | 2 | 3 | 4;
 type WeeklyMeals = Record<Week, number[]>;
+
+// Extended meal type for frontend display
+type DisplayMeal = Omit<Meal, 'price' | 'calories' | 'category'> & {
+  image: string;
+  prepTime: string;
+  calories: string;
+  tags: string[];
+  category: string[];
+  price: string;
+};
 
 const ConfigureSubscriptionPage = () => {
   const [searchParams] = useSearchParams();
@@ -35,7 +45,6 @@ const ConfigureSubscriptionPage = () => {
       finalTotal: billingFrequency === 'monthly' ? monthlyTotal : weeklyTotal
     };
   }, [planName, billingFrequency]);
-
   // State
   const [activeWeek, setActiveWeek] = useState<Week>(1);
   const [selectedMeals, setSelectedMeals] = useState<WeeklyMeals>({
@@ -44,6 +53,37 @@ const ConfigureSubscriptionPage = () => {
     3: [],
     4: []
   });
+  const [meals, setMeals] = useState<DisplayMeal[]>([]);
+  const [isLoadingMeals, setIsLoadingMeals] = useState(true);
+  // Fetch meals from API
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        setIsLoadingMeals(true);
+        const apiMeals = await getAllMeals();
+        
+        // Transform API meals to include frontend properties
+        const transformedMeals = apiMeals.map(meal => ({
+          ...meal,
+          image: meal.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+          price: `$${(typeof meal.price === 'number' ? meal.price : parseFloat(meal.price) || 0).toFixed(2)}`,
+          calories: meal.calories ? `${meal.calories} cal` : '400 cal',
+          prepTime: meal.prep_time || '20 min',
+          tags: meal.tags || ['Fresh', 'Healthy'],
+          category: meal.category ? [meal.category.toLowerCase()] : ['popular']
+        }));
+        
+        setMeals(transformedMeals);
+      } catch (error) {
+        console.error('Error fetching meals for subscription configuration:', error);
+        setMeals([]);
+      } finally {
+        setIsLoadingMeals(false);
+      }
+    };
+
+    fetchMeals();
+  }, []);
 
   useEffect(() => {
     if (!planName) {
@@ -146,10 +186,16 @@ const ConfigureSubscriptionPage = () => {
                 </button>
               ))}
             </div>
-            
-            {/* Meal Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {meals.map(meal => {
+              {/* Meal Grid */}
+            {isLoadingMeals ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="bg-gray-200 animate-pulse rounded-xl h-32"></div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {meals.map(meal => {
                 const isSelected = selectedMeals[activeWeek].includes(meal.id);
                 const isSelectionDisabled = !isSelected && 
                   (planDetails ? selectedMeals[activeWeek].length >= planDetails.mealsPerWeek : true);
@@ -184,8 +230,7 @@ const ConfigureSubscriptionPage = () => {
                               <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
                                 {tag}
                               </span>
-                            ))}
-                            {/* Replace dietaryInfo with the correct property name from your meals data */}
+                            ))}                            {/* Replace dietaryInfo with the correct property name from your meals data */}
                             {meal.category && meal.category.map((info: string) => (
                               <span key={info} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
                                 {info}
@@ -201,11 +246,11 @@ const ConfigureSubscriptionPage = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-                  </motion.div>
+                    </div>                  </motion.div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
           
           {/* Sticky Sidebar */}

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select } from '../ui/Select';
 import { Edit2Icon, CheckIcon } from 'lucide-react';
-import { meals } from '../OurMeals';
+import { getAllMeals, Meal } from '../../services/meals';
 import { motion, AnimatePresence } from 'framer-motion';
 interface QuickSwapMealProps {
   currentMeal: string;
@@ -15,6 +15,27 @@ export const QuickSwapMeal = ({
 }: QuickSwapMealProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [isLoadingMeals, setIsLoadingMeals] = useState(true);
+
+  // Fetch meals on component mount
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        setIsLoadingMeals(true);
+        const apiMeals = await getAllMeals();
+        setMeals(apiMeals);
+      } catch (error) {
+        console.error('Error fetching meals for swap:', error);
+        setMeals([]);
+      } finally {
+        setIsLoadingMeals(false);
+      }
+    };
+
+    fetchMeals();
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMeal = e.target.value;
     if (newMeal !== currentMeal) {
@@ -25,10 +46,19 @@ export const QuickSwapMeal = ({
       setTimeout(() => setShowSuccess(false), 2000);
     }
   };
+
   const mealOptions = meals.map(meal => ({
     value: meal.name,
     label: meal.name
   }));
+
+  if (isLoadingMeals) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-400">Loading meals...</span>
+      </div>
+    );
+  }
   if (isEditing) {
     return <div className="flex items-center gap-2">
         <Select options={mealOptions} value={currentMeal} onChange={handleChange} className="w-64" autoFocus onBlur={() => setIsEditing(false)} />

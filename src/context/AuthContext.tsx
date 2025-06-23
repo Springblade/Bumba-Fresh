@@ -1,6 +1,8 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '../types/shared'; // Make sure User is imported
+import { User } from '../types/shared';
+import { fetchData } from '../services/api';
+import { AUTH_TOKEN_KEY, USER_KEY, setAuthToken, removeAuthToken, getCurrentUser, setCurrentUser, clearAuth } from '../services/auth';
 export interface Address {
   street: string;
   city: string;
@@ -10,13 +12,19 @@ export interface Address {
 }
 export interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean; // Make sure this is defined
+  isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    address?: string;
+  }) => Promise<void>;
   logout: () => void;
   updateUserAddress: (newAddress: Address) => void;
-
-  // New admin-specific method
   setupAdminAccount: (adminKey: string) => Promise<boolean>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,31 +35,29 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  useEffect(() => {
-    const authToken = localStorage.getItem('authToken');
-    const currentUser = localStorage.getItem('currentUser');
-    if (authToken && currentUser) {
-      try {
-        const userData = JSON.parse(currentUser);
-        // Verify the user exists in fakeUsers
-        const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-        const isValidUser = fakeUsers.some((u: any) => u.email === userData.email);
-        if (!isValidUser) {
-          throw new Error('Invalid user');
-        }
-        setUser(userData);
-      } catch (e) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
-        setUser(null);
-        const protectedRoutes = ['/cart', '/checkout', '/payment'];
-        if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
-          navigate('/auth');
+  const navigate = useNavigate();  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      const storedUser = getCurrentUser();
+      
+      if (token && storedUser) {
+        try {
+          // Verify token with backend
+          const response = await fetchData<{ user: any }>('/auth/verify');
+          setUser(storedUser);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          clearAuth();
+          setUser(null);          const protectedRoutes = ['/cart', '/checkout', '/payment', '/account'];
+          if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
+            navigate('/auth');
+          }
         }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+    
+    checkAuth();
   }, [navigate]);
   const updateUserAddress = (newAddress: Address) => {
     if (!user) return;
@@ -61,30 +67,99 @@ export function AuthProvider({
     };
     setUser(updatedUser);
     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-  };
-  const login = async (email: string, password: string) => {
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    const foundUser = fakeUsers.find((u: any) => u.email === email && u.password === password);
-    if (!foundUser) {
-      throw new Error('Invalid credentials');
+  };  const register = async (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    address?: string;
+  }) => {
+    try {
+      const response = await fetchData<{
+        message: string;
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          phone: string;
+          address: string;
+        };
+        token: string;
+      }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+
+      // Store token and user data
+      setAuthToken(response.token);
+      
+      const newUser: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        address: response.user.address ? {
+          street: response.user.address,
+          city: '',
+          state: '',
+          zip: '',
+          country: ''
+        } : undefined
+      };
+      
+      setCurrentUser(newUser);
+      setUser(newUser);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw new Error('Registration failed. Please try again.');
     }
-    // Get stored address if it exists
-    const currentUser = localStorage.getItem('currentUser');
-    const existingAddress = currentUser ? JSON.parse(currentUser).address : undefined;
-    const userData = {
-      id: foundUser.id || Math.random().toString(36).substr(2, 9),
-      email: foundUser.email,
-      firstName: foundUser.fullName.split(' ')[0],
-      lastName: foundUser.fullName.split(' ')[1] || '',
-      address: existingAddress
-    };
-    localStorage.setItem('authToken', Math.random().toString(36).substr(2));
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    setUser(userData);
   };
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await fetchData<{
+        message: string;
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          phone: string;
+          address: string;
+        };
+        token: string;
+      }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      // Store token and user data
+      setAuthToken(response.token);
+      
+      const userData: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        address: response.user.address ? {
+          street: response.user.address,
+          city: '',
+          state: '',
+          zip: '',
+          country: ''
+        } : undefined
+      };
+      
+      setCurrentUser(userData);
+      setUser(userData);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error('Invalid email or password');
+    }
+  };  const logout = () => {
+    clearAuth();
     setUser(null);
     navigate('/auth');
   };
@@ -115,24 +190,8 @@ export function AuthProvider({
         ...user,
         isAdmin: true
       };
-      
-      // Update in localStorage
+        // Update in localStorage
       localStorage.setItem('currentUser', JSON.stringify(adminUser));
-      
-      // Also update in fakeUsers array if it exists
-      try {
-        const storedUsers = localStorage.getItem('fakeUsers');
-        if (storedUsers) {
-          const users = JSON.parse(storedUsers);
-          const updatedUsers = users.map((u: any) => 
-            u.email === user.email ? { ...u, isAdmin: true } : u
-          );
-          localStorage.setItem('fakeUsers', JSON.stringify(updatedUsers));
-        }
-      } catch (err) {
-        // Non-critical error, continue
-        console.log('Could not update users array');
-      }
       
       // Update state
       setUser(adminUser);
@@ -143,13 +202,13 @@ export function AuthProvider({
       return false;
     }
   };
-  
-  // Include the function in your context value
+    // Include the function in your context value
   const value = {
     user,
     isAuthenticated,
     isLoading,
     login,
+    register,
     logout,
     updateUserAddress,
     setupAdminAccount,

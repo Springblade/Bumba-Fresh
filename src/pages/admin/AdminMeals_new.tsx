@@ -32,7 +32,7 @@ const AdminMeals: React.FC = () => {
           id: meal.id.toString(),
           name: meal.name,
           category: meal.category || 'Other',
-          price: `$${(typeof meal.price === 'number' ? meal.price : parseFloat(meal.price) || 0).toFixed(2)}`,
+          price: `$${meal.price.toFixed(2)}`,
           calories: meal.calories || 0,
           status: 'active' as const,
           imageUrl: meal.image_url || '/images/meals/default.jpg'

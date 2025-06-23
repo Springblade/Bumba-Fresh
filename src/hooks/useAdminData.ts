@@ -104,59 +104,36 @@ export function useAdminData(options: AdminDataOptions = {}) {
     await new Promise(resolve => setTimeout(resolve, 800));
     return filteredOrders;
   }, [options.status]);
-  
-  // Fetch meals with optional filters
+    // Fetch meals with optional filters
   const fetchMeals = useCallback(async (): Promise<AdminMeal[]> => {
-    const meals: AdminMeal[] = [
-      {
-        id: '1',  // Convert to string
-        name: 'Grilled Salmon Bowl',
-        category: 'Lunch',
-        price: '$12.99',
-        calories: 450,
-        status: 'active',
-        tags: ['High Protein', 'Gluten Free'],
-        inventory: 24
-      },
-      {
-        id: '2',  // Convert to string
-        name: 'Quinoa Buddha Bowl',
-        category: 'Lunch',
-        price: '$11.49',
-        calories: 380,
-        status: 'active',
-        tags: ['Vegetarian', 'High Fiber'],
-        inventory: 18
-      },
-      {
-        id: '3',
-        name: 'Chicken Fajita Bowl',
-        category: 'Dinner',
-        price: '$13.99',
-        calories: 520,
-        status: 'active',
-        tags: ['High Protein', 'Spicy'],
-        inventory: 12
-      },
-      {
-        id: '4',
-        name: 'Mediterranean Plate',
-        category: 'Lunch',
-        price: '$10.99',
-        calories: 420,
-        status: 'inactive',
-        tags: ['Vegetarian'],
-        inventory: 0
-      }
-    ];
-    
-    // Filter by status if needed
-    const filteredMeals = !options.includeInactive ? 
-      meals.filter(meal => meal.status === 'active') : 
-      meals;
-    
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return filteredMeals;
+    try {
+      const { getAllMeals } = await import('../services/meals');
+      const apiMeals = await getAllMeals();
+      
+      // Transform API data to AdminMeal format
+      const transformedMeals: AdminMeal[] = apiMeals.map(meal => ({
+        id: meal.id.toString(),
+        name: meal.name,
+        category: meal.category || 'Other',
+        price: `$${(typeof meal.price === 'number' ? meal.price : parseFloat(meal.price) || 0).toFixed(2)}`,
+        calories: meal.calories || 0,
+        status: 'active' as const,
+        tags: meal.tags || [],
+        inventory: Math.floor(Math.random() * 50) + 10 // Mock inventory count for now
+      }));
+      
+      // Filter by status if needed
+      const filteredMeals = !options.includeInactive ? 
+        transformedMeals.filter(meal => meal.status === 'active') : 
+        transformedMeals;
+      
+      await new Promise(resolve => setTimeout(resolve, 600));
+      return filteredMeals;
+    } catch (error) {
+      console.error('Error fetching meals in useAdminData:', error);
+      // Return empty array on error
+      return [];
+    }
   }, [options.includeInactive]);
 
   // Fetch customers

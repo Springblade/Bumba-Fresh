@@ -1,0 +1,24 @@
+{
+  "name": "bumba-fresh-database-utils",
+  "version": "1.0.0",
+  "description": "JavaScript database utilities for Bumba Fresh - converted from Java",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test/test-runner.js"
+  },
+  "keywords": [
+    "database",
+    "postgresql",
+    "meal-delivery",
+    "utilities"
+  ],
+  "author": "Bumba Fresh Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "pg": "^8.16.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  }
+}

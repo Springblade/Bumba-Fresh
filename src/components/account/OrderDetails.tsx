@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -6,7 +6,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { getUserOrderById, getOrderItems, getOrderDelivery } from '../../services/orders';
 import { useAuth } from '../../context/AuthContext';
 
-export const OrderDetails = () => {
+export const OrderDetails: React.FC = () => {
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();  const [order, setOrder] = useState<any>(null);

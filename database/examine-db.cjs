@@ -4,7 +4,7 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'Bumba_fresh',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '999999'
+  password: process.env.DB_PASSWORD || '12345'
 });
 
 async function examineDatabase() {

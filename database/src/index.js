@@ -7,6 +7,7 @@ const LoginManager = require('./loginManager');
 const MealOrderManager = require('./mealOrderManager');
 const OrderManager = require('./orderManager');
 const PlanManager = require('./planManager');
+const UserStatsManager = require('./userStatsManager');
 
 module.exports = {
   db,
@@ -16,5 +17,6 @@ module.exports = {
   LoginManager,
   MealOrderManager,
   OrderManager,
-  PlanManager
+  PlanManager,
+  UserStatsManager
 };

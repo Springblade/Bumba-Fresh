@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Mail, Download } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { AdminCustomer } from '../../types/shared';
 
 /* 
@@ -64,21 +64,8 @@ const AdminCustomers: React.FC = () => {
       ? customers.filter(customer => customer.subscribed)
       : customers.filter(customer => !customer.subscribed);
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Customer Management</h1>
-        <div className="flex gap-2">
-          <button className="px-3 py-2 border border-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-50">
-            <Mail className="w-4 h-4" />
-            <span>Email Selected</span>
-          </button>
-          <button className="px-3 py-2 border border-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-50">
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
-        </div>
-      </div>
+  return (    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Customer Management</h1>
       
       {/* Search and filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -100,24 +87,12 @@ const AdminCustomers: React.FC = () => {
           <option value="subscribed">Subscribers</option>
           <option value="non-subscribed">Non-Subscribers</option>
         </select>
-        
-        <button className="px-3 py-2 border border-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-50">
-          <Filter className="w-5 h-5" />
-          <span className="hidden sm:inline">More Filters</span>
-        </button>
       </div>
       
       {/* Customers table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto bg-white rounded-lg shadow">        <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <input 
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</th>
@@ -126,15 +101,8 @@ const AdminCustomers: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredCustomers.map(customer => (
+          <tbody className="bg-white divide-y divide-gray-200">            {filteredCustomers.map(customer => (
               <tr key={customer.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input 
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-medium text-gray-900">{customer.firstName} {customer.lastName}</div>
                 </td>
@@ -151,11 +119,9 @@ const AdminCustomers: React.FC = () => {
                       Non-Subscriber
                     </span>
                   )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                </td>                <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex gap-2">
-                    <button className="text-primary-600 hover:text-primary-900">View</button>
-                    <button className="text-gray-600 hover:text-gray-900">Edit</button>
+                    <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                   </div>
                 </td>
               </tr>

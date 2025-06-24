@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useAsyncData } from './useAsyncData';
+import { fetchData } from '../services/api';
 import { 
   AdminStats, 
   AdminOrder, 
@@ -20,28 +21,45 @@ interface AdminDataOptions {
 
 export function useAdminData(options: AdminDataOptions = {}) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  
-  // Fetch dashboard stats
+    // Fetch dashboard stats
   const fetchStats = useCallback(async (): Promise<AdminStats> => {
-    // In a real app, this would be an API call
-    // For now, return mock data
-    const stats: AdminStats = {
-      totalRevenue: 12345.67,
-      activeCustomers: 854,
-      ordersThisWeek: 248,
-      averageOrderValue: 54.67,
-      revenueChange: 12.5,  // Add this property
-      percentChange: {
-        revenue: 12.5,
-        customers: 5.3,
-        orders: 18.2,
-        averageOrder: -2.1
-      }
-    };
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return stats;
+    try {
+      // Fetch customer stats from the backend
+      const customerStatsResponse = await fetchData<{ stats: { totalCustomers: number; activeCustomers: number; newCustomersThisWeek: number } }>('/admin/customers/stats');
+      
+      const stats: AdminStats = {
+        totalRevenue: 12345.67,
+        activeCustomers: customerStatsResponse.stats.totalCustomers,
+        ordersThisWeek: 248,
+        averageOrderValue: 54.67,
+        revenueChange: 12.5,
+        percentChange: {
+          revenue: 12.5,
+          customers: 5.3,
+          orders: 18.2,
+          averageOrder: -2.1
+        }
+      };
+      
+      return stats;
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      // Return fallback data if API call fails
+      const stats: AdminStats = {
+        totalRevenue: 12345.67,
+        activeCustomers: 0,
+        ordersThisWeek: 248,
+        averageOrderValue: 54.67,
+        revenueChange: 12.5,
+        percentChange: {
+          revenue: 12.5,
+          customers: 5.3,
+          orders: 18.2,
+          averageOrder: -2.1
+        }
+      };
+      return stats;
+    }
   }, [options.dateRange]);
   
   // Fetch orders with optional filters

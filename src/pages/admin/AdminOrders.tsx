@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Check, Clock, Truck, X } from 'lucide-react';
+import { Search, Check, Clock, Truck, X } from 'lucide-react';
 import { useAdminData } from '../../hooks/useAdminData';
 
 /* 
@@ -42,14 +42,8 @@ const AdminOrders: React.FC = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
-        <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
-          New Order
-        </button>
-      </div>
+  return (    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
       
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -62,24 +56,17 @@ const AdminOrders: React.FC = () => {
           />
         </div>
         
-        <div className="flex gap-2">
-          <select 
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          
-          <button className="px-3 py-2 border border-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-50">
-            <Filter className="w-5 h-5" />
-            <span>More Filters</span>
-          </button>
-        </div>
+        <select 
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+        >
+          <option value="all">All Statuses</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
       </div>
       
       {/* Orders table */}
@@ -124,11 +111,9 @@ const AdminOrders: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{order.total}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(order.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  </td>                  <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex gap-2">
-                      <button className="text-primary-600 hover:text-primary-900">View</button>
-                      <button className="text-gray-600 hover:text-gray-900">Edit</button>
+                      <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                     </div>
                   </td>
                 </tr>

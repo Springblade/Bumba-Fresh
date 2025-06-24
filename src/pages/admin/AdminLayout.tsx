@@ -5,7 +5,6 @@ import {
   ShoppingBag, 
   Users, 
   UtensilsCrossed, 
-  Settings, 
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -21,13 +20,11 @@ const AdminLayout: React.FC = () => {
   // Redirect if not admin
   if (!user || !user.isAdmin) {
     return <Navigate to="/auth" replace />;
-  }
-  const navigation = [
+  }  const navigation = [
     { name: 'Dashboard', to: '/admin', icon: LayoutGrid },
     { name: 'Orders', to: '/admin/orders', icon: ShoppingBag },
     { name: 'Customers', to: '/admin/customers', icon: Users },
     { name: 'Meal Management', to: '/admin/meals', icon: UtensilsCrossed },
-    { name: 'Settings', to: '/admin/settings', icon: Settings },
   ];
 
   return (

@@ -433,9 +433,12 @@ const DietitianMessaging: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center space-x-1">
+                  {/* Remove or comment out the shopping bag button below */}
+                  {/* 
                   <button className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-md transition-colors">
                     <ShoppingBag size={16} />
                   </button>
+                  */}
                   <button className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded-md transition-colors">
                     <MoreVertical size={16} />
                   </button>

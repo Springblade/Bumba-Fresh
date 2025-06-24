@@ -32,7 +32,8 @@ The frontend already has a heart icon button implemented in `MealCard` component
 
 ## Database Schema
 
-### New Table: `favorite`
+<!-- DATABASE ALREADY IMPLEMENTED -->
+<!-- ### New Table: `favorite`
 ```sql
 CREATE TABLE favorite (
     favorite_id SERIAL PRIMARY KEY,
@@ -53,7 +54,7 @@ CREATE TABLE favorite (
 **Indexes:**
 - `idx_favorite_user_id`: Index on `user_id` for fast user-specific queries
 - `idx_favorite_meal_id`: Index on `meal_id` for meal-specific queries
-- `idx_favorite_user_meal`: Composite index on `(user_id, meal_id)` for duplicate checks
+- `idx_favorite_user_meal`: Composite index on `(user_id, meal_id)` for duplicate checks -->
 
 ## User Flow
 

@@ -142,16 +142,14 @@ class FavoriteManager {
       paramCount++;
       query += ` AND LOWER(i.category) = LOWER($${paramCount})`;
       params.push(category);
-    }
-
-    // Add sorting
+    }    // Add sorting
     const validSortColumns = ['meal_name', 'price', 'created_at', 'favorited_at'];
     const validOrders = ['asc', 'desc'];
     
     if (validSortColumns.includes(sort) && validOrders.includes(order.toLowerCase())) {
       const sortColumn = sort === 'meal_name' ? 'i.meal' : 
                         sort === 'favorited_at' ? 'f.created_at' : 
-                        sort === 'created_at' ? 'i.created_at' : 
+                        sort === 'created_at' ? 'f.created_at' : 
                         `i.${sort}`;
       query += ` ORDER BY ${sortColumn} ${order.toUpperCase()}`;
     } else {

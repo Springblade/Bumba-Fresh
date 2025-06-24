@@ -68,13 +68,11 @@ const updateUserProfile = async (req, res) => {
         error: 'Validation failed',
         details: errors.array()
       });
-    }
-
-    const userId = req.user.id;
-    const { firstName, lastName, phone, address } = req.body;
+    }    const userId = req.user.id;
+    const { firstName, lastName } = req.body;
 
     console.log('UserController: Updating profile for user ID:', userId);
-    console.log('UserController: Update data:', { firstName, lastName, phone, address });
+    console.log('UserController: Update data:', { firstName, lastName });
 
     // Validate user ID exists
     if (!userId) {
@@ -89,8 +87,6 @@ const updateUserProfile = async (req, res) => {
     const updateData = {};
     if (firstName !== undefined) updateData.first_name = firstName;
     if (lastName !== undefined) updateData.last_name = lastName;
-    if (phone !== undefined) updateData.phone = phone;
-    if (address !== undefined) updateData.address = address;
 
     console.log('UserController: Prepared update data for database:', updateData);
 
@@ -118,9 +114,7 @@ const updateUserProfile = async (req, res) => {
       id: result.user.user_id,
       email: result.user.email,
       firstName: result.user.first_name,
-      lastName: result.user.last_name,
-      phone: result.user.phone || '',
-      address: result.user.address || ''
+      lastName: result.user.last_name
     };
 
     console.log('UserController: Profile successfully updated in database');

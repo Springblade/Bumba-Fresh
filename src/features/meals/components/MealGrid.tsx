@@ -1,4 +1,3 @@
-import React from 'react';
 import MealCard from './MealCard';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -12,7 +11,7 @@ interface MealGridProps {
   }>;
   isLoading: boolean;
   onAddToCart: (meal: BaseMeal & { prepTime: string; calories: string }) => void;
-  onLike: (id: number) => void;
+  onLike: (id: number) => Promise<void>;
   likedMeals: number[];
   recentlyAdded: number[];
 }

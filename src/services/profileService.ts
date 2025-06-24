@@ -30,8 +30,6 @@ interface ProfileResponse {
 interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
-  phone?: string;
-  address?: string;
 }
 
 class ProfileService {
@@ -44,15 +42,12 @@ class ProfileService {
       
       // Update localStorage with fresh data from backend
       if (response.profile) {
-        const currentUser = localStorage.getItem('currentUser');
-        if (currentUser) {
+        const currentUser = localStorage.getItem('currentUser');        if (currentUser) {
           const userData = JSON.parse(currentUser);
           const updatedUserData = {
             ...userData,
             firstName: response.profile.firstName,
-            lastName: response.profile.lastName,
-            phone: response.profile.phone,
-            address: response.profile.address
+            lastName: response.profile.lastName
           };
           localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
           console.log('ProfileService: Updated localStorage with fresh profile data');
@@ -71,13 +66,10 @@ class ProfileService {
 
       const userData = JSON.parse(currentUser);
       
-      const profile: ProfileData = {
-        id: userData.id,
+      const profile: ProfileData = {        id: userData.id,
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        phone: userData.phone || '',
-        address: userData.address ? (typeof userData.address === 'string' ? userData.address : `${userData.address.street || ''}, ${userData.address.city || ''}, ${userData.address.state || ''} ${userData.address.zip || ''}`.trim()) : '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -113,13 +105,10 @@ class ProfileService {
       // Update localStorage with the updated profile data from backend
       const currentUser = localStorage.getItem('currentUser');
       if (currentUser && response.profile) {
-        const userData = JSON.parse(currentUser);
-        const updatedUserData = {
+        const userData = JSON.parse(currentUser);        const updatedUserData = {
           ...userData,
           firstName: response.profile.firstName,
-          lastName: response.profile.lastName,
-          phone: response.profile.phone,
-          address: response.profile.address
+          lastName: response.profile.lastName
         };
         localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
         console.log('ProfileService: Updated localStorage with backend response');
@@ -141,27 +130,21 @@ class ProfileService {
       }
 
       const userData = JSON.parse(currentUser);
-      
-      // Update the current user data with new profile information
+        // Update the current user data with new profile information
       const updatedUserData = {
         ...userData,
         firstName: data.firstName || userData.firstName,
-        lastName: data.lastName || userData.lastName,
-        phone: data.phone || userData.phone || '',
-        address: data.address || userData.address || ''
+        lastName: data.lastName || userData.lastName
       };
 
       // Update current user in localStorage
       localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
 
       // Create updated profile data
-      const profile: ProfileData = {
-        id: updatedUserData.id,
+      const profile: ProfileData = {        id: updatedUserData.id,
         email: updatedUserData.email,
         firstName: updatedUserData.firstName,
         lastName: updatedUserData.lastName,
-        phone: updatedUserData.phone || '',
-        address: typeof updatedUserData.address === 'string' ? updatedUserData.address : (updatedUserData.address ? `${updatedUserData.address.street || ''}, ${updatedUserData.address.city || ''}, ${updatedUserData.address.state || ''} ${updatedUserData.address.zip || ''}`.trim() : ''),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

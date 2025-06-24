@@ -45,7 +45,7 @@ class ProfileManager {
         };
       }
 
-      const allowedFields = ['first_name', 'last_name', 'phone', 'address'];
+      const allowedFields = ['first_name', 'last_name'];
       const updates = [];
       const values = [];
       let paramCount = 0;

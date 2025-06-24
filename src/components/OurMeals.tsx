@@ -11,6 +11,7 @@ import { MealCardSkeleton } from './ui/MealCardSkeleton';
 import { getAllMeals } from '../services/meals';
 import ApiStatus from './debug/ApiStatus';
 import { formatCurrency } from '../utils/priceUtils';
+import { useFavorites } from '../hooks/useFavorites';
 
 type Meal = BaseMeal & {
   prepTime: string;
@@ -20,17 +21,9 @@ type Meal = BaseMeal & {
 
 const OurMeals = () => {
   const { addToCart } = useCart();
+  const { likedMeals, toggleFavorite } = useFavorites();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [recentlyAdded, setRecentlyAdded] = useState<number[]>([]);
-  const [likedMeals, setLikedMeals] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem('likedMeals');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading liked meals:', error);
-      return [];
-    }
-  });
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoadingMeals, setIsLoadingMeals] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -113,7 +106,6 @@ const OurMeals = () => {
     setPage,
     isLoading
   } = useMealFilter(meals, 12);
-
   // Memoize handlers
   const handleAddToCart = useCallback((meal: any) => {
     addToCart(meal);
@@ -122,23 +114,6 @@ const OurMeals = () => {
       setRecentlyAdded((prev: number[]) => prev.filter((id: number) => id !== meal.id));
     }, 1500);
   }, [addToCart]);
-
-  const toggleLike = useCallback((id: number) => {
-    setLikedMeals((current: number[]) => 
-      current.includes(id) 
-        ? current.filter((mealId: number) => mealId !== id) 
-        : [...current, id]
-    );
-  }, []);
-
-  // Save liked meals to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('likedMeals', JSON.stringify(likedMeals));
-    } catch (error) {
-      console.error('Error saving liked meals:', error);
-    }
-  }, [likedMeals]);
 
   // Show error state
   if (errorMessage) {
@@ -213,12 +188,11 @@ const OurMeals = () => {
               <MealCardSkeleton key={index} />
             ))
           ) : (
-            paginatedMeals.map((meal: Meal) => (
-              <MealCard 
+            paginatedMeals.map((meal: Meal) => (              <MealCard 
                 key={meal.id} 
                 meal={meal} 
                 onAddToCart={handleAddToCart} 
-                onLike={toggleLike} 
+                onLike={toggleFavorite} 
                 isLiked={likedMeals.includes(meal.id)} 
                 recentlyAdded={recentlyAdded.includes(meal.id)} 
               />

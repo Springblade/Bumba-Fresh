@@ -89,7 +89,7 @@ CREATE TABLE favorite (
 -- Create indexes for better performance
 CREATE INDEX idx_account_email ON account(email);
 CREATE INDEX idx_account_role ON account(role);
-CREATE INDEX idx_orders_user_id ON "order"(user_id);
+CREATE INDEX idx_order_user_id ON "order"(user_id);
 CREATE INDEX idx_order_meal_order_id ON order_meal(order_id);
 CREATE INDEX idx_order_meal_meal_id ON order_meal(meal_id);
 CREATE INDEX idx_plan_user_id ON plan(user_id);

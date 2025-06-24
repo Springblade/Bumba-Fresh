@@ -1,5 +1,12 @@
-const { FavoriteManager } = require('../../../database/src');
+const path = require('path');
+const FavoriteManager = require(path.join(__dirname, '../../../database/src/favoriteManager'));
 const { body, param, query, validationResult } = require('express-validator');
+
+// Ensure FavoriteManager is available
+if (!FavoriteManager) {
+  throw new Error('Failed to load FavoriteManager module');
+}
+
 
 /**
  * Favorites Controller

@@ -230,9 +230,9 @@ const AdminMeals: React.FC = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         title="Delete Meal"
-        description="Are you sure you want to delete this meal? This action cannot be undone."
-        confirmButtonText="Delete"
-        confirmButtonVariant="danger"
+        message="Are you sure you want to delete this meal? This action cannot be undone."
+        confirmText="Delete"
+        type="danger"
       />
     </div>
   );

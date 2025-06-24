@@ -1,18 +1,25 @@
-I need to merge two branches and resolve conflicts. The branches in question are: `profile-manager-fixing` and `Trieu_Frontend2`. I am currently on the `profile-manager-fixing` branch and want to merge `Trieu_Frontend2` into it.
+I need to merge two branches and resolve conflicts. The branches in question are: `profile-manager-fixing` and `Trieu_Frontend`. I am currently on the `profile-manager-fixing` branch and want to merge `Trieu_Frontend` into it.
 
-Create a backup branch named `profile-manager-fixing-backup` before proceeding with the merge, so I can revert back if needed.
+There is a backup branch named `profile-manager-fixing-backup` already.
 
-I need the new UI and Frontend components from `Trieu_Frontend2`, while making sure that the new features: profile management and favorite list from `profile-manager-fixing` work properly with the new UI.
+I need the new UI and Frontend components from `Trieu_Frontend`, while making sure that the new features: profile management and favorite list from `profile-manager-fixing` work properly with the new UI.
 
-`Trieu_Frontend2` has a new and updated some of the UI elements.
+`Trieu_Frontend` has a new and updated some of the UI elements.
 
-`profile-manager-fixing` has old UI components, but has new working backend and database features for profile management and a favorite list, which I want to integrate with the new UI from `Trieu_Frontend2`.
+`profile-manager-fixing` has old UI components, but has new working backend and database features for profile management and a favorite list, which I want to integrate with the new UI from `Trieu_Frontend`.
 
-Keep the current database credentials, like postgres username, database name and password, as they are in the `profile-manager-fixing` branch. The new branch has different database credentials, and I want to keep the ones from `profile-manager-fixing` for convenience.
+Preserve the database credentials of `profile-manager-fixing` branch. The new branch has different database credentials, and I want to keep the ones from `profile-manager-fixing` for convenience. The details are as follows:
 
-The branch `Trieu_Frontend2` has a new database schema, with RBAC accounts for testing new features. The branch `profile-manager-fixing` has a the old database schema, with a new relation for `favorite` to keep track of favorite meals of each user, which I want to keep.
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=Bumba_fresh
+DB_USER=postgres
+DB_PASSWORD=12345
 
-Resolve the conflicts by merging the branches while ensuring that the new UI from `Trieu_Frontend2` works with the backend features from `profile-manager-fixing`. 
+
+The branch `Trieu_Frontend` has a new database schema, with RBAC accounts for testing new features. The branch `profile-manager-fixing` has a the old database schema, with a new relation for `favorite` to keep track of favorite meals of each user, which I want to keep.
+
+Resolve the conflicts by merging the branches while ensuring that the new UI from `Trieu_Frontend` works with the backend features from `profile-manager-fixing`. 
 
 DO NOT delete any files, but update the necessary files to ensure compatibility. 
 DO NOT overwrite the database credentials from `profile-manager-fixing`. 

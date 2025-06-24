@@ -2,7 +2,22 @@ import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../types/shared';
 import { fetchData } from '../services/api';
-import { AUTH_TOKEN_KEY, USER_KEY, setAuthToken, removeAuthToken, getCurrentUser, setCurrentUser, clearAuth } from '../services/auth';
+import { setAuthToken, getCurrentUser, setCurrentUser, clearAuth } from '../services/auth';
+
+// Helper function to determine redirect route based on user role
+export const getRedirectRoute = (user: User | null, fallback: string = '/'): string => {
+  if (!user) return fallback;
+  
+  switch (user.role) {
+    case 'admin':
+      return '/admin'; // This will show AdminDashboard as it's the index route
+    case 'dietitian':
+      return '/dietitian'; // This will show DietitianMessaging as it's the index route
+    case 'user':
+    default:
+      return fallback;
+  }
+};
 export interface Address {
   street: string;
   city: string;
@@ -40,10 +55,9 @@ export function AuthProvider({
       const token = localStorage.getItem('authToken');
       const storedUser = getCurrentUser();
       
-      if (token && storedUser) {
-        try {
+      if (token && storedUser) {        try {
           // Verify token with backend
-          const response = await fetchData<{ user: any }>('/auth/verify');
+          await fetchData<{ user: any }>('/auth/verify');
           setUser(storedUser);
         } catch (error) {
           console.error('Token verification failed:', error);
@@ -75,8 +89,7 @@ export function AuthProvider({
     phone?: string;
     address?: string;
   }) => {
-    try {
-      const response = await fetchData<{
+    try {      const response = await fetchData<{
         message: string;
         user: {
           id: string;
@@ -85,6 +98,7 @@ export function AuthProvider({
           lastName: string;
           phone: string;
           address: string;
+          role: 'user' | 'admin' | 'dietitian';
         };
         token: string;
       }>('/auth/register', {
@@ -94,12 +108,13 @@ export function AuthProvider({
 
       // Store token and user data
       setAuthToken(response.token);
-      
-      const newUser: User = {
+        const newUser: User = {
         id: response.user.id,
         email: response.user.email,
         firstName: response.user.firstName,
         lastName: response.user.lastName,
+        role: response.user.role,
+        isAdmin: response.user.role === 'admin',
         address: response.user.address ? {
           street: response.user.address,
           city: '',
@@ -110,16 +125,16 @@ export function AuthProvider({
       };
       
       setCurrentUser(newUser);
-      setUser(newUser);
-    } catch (error) {
+      setUser(newUser);    } catch (error) {
       console.error('Registration error:', error);
-      throw new Error('Registration failed. Please try again.');
+      // Log the full error details for debugging
+      console.error('Registration error details:', error instanceof Error ? error.message : String(error));
+      throw error; // Re-throw the original error instead of a generic one
     }
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetchData<{
+    try {      const response = await fetchData<{
         message: string;
         user: {
           id: string;
@@ -128,6 +143,7 @@ export function AuthProvider({
           lastName: string;
           phone: string;
           address: string;
+          role: 'user' | 'admin' | 'dietitian';
         };
         token: string;
       }>('/auth/login', {
@@ -137,12 +153,13 @@ export function AuthProvider({
 
       // Store token and user data
       setAuthToken(response.token);
-      
-      const userData: User = {
+        const userData: User = {
         id: response.user.id,
         email: response.user.email,
         firstName: response.user.firstName,
         lastName: response.user.lastName,
+        role: response.user.role,
+        isAdmin: response.user.role === 'admin',
         address: response.user.address ? {
           street: response.user.address,
           city: '',
@@ -200,8 +217,8 @@ export function AuthProvider({
     } catch (error) {
       console.error('Admin setup error:', error);
       return false;
-    }
-  };
+    }  };
+
     // Include the function in your context value
   const value = {
     user,

@@ -56,7 +56,7 @@ class LoginManager {  /**
    */
   static async getUserWithPassword(identifier) {
     const query = `
-      SELECT user_id, password, email, first_name, last_name, phone, address 
+      SELECT user_id, password, email, first_name, last_name, phone, address, role
       FROM account 
       WHERE email = $1
     `;
@@ -110,7 +110,7 @@ class LoginManager {  /**
    */
   static async getUserProfile(identifier) {
     const query = `
-      SELECT user_id, email, first_name, last_name, phone, address 
+      SELECT user_id, email, first_name, last_name, phone, address, role 
       FROM account 
       WHERE email = $1
     `;
@@ -130,7 +130,7 @@ class LoginManager {  /**
    */
   static async getUserById(userId) {
     const query = `
-      SELECT user_id, email, first_name, last_name, phone, address 
+      SELECT user_id, email, first_name, last_name, phone, address, role 
       FROM account 
       WHERE user_id = $1
     `;
@@ -154,7 +154,8 @@ class LoginManager {  /**
           firstName: user.first_name,
           lastName: user.last_name,
           phone: user.phone,
-          address: user.address
+          address: user.address,
+          role: user.role
         }
       };
     } catch (error) {

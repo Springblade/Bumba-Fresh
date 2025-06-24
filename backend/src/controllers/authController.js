@@ -13,14 +13,21 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
  */
 const register = async (req, res) => {
   try {
+    // Log the incoming request for debugging
+    console.log('🔍 Registration request received:', {
+      body: req.body,
+      headers: req.headers['content-type']
+    });
+
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()
       });
-    }    const { password, email, firstName, lastName, phone, address } = req.body;
+    }const { password, email, firstName, lastName, phone, address } = req.body;
 
     // Create account using the database layer
     const result = await AccountCreator.createAccount(
@@ -41,7 +48,8 @@ const register = async (req, res) => {
     const token = jwt.sign(
       { 
         userId: result.user.user_id, 
-        email: result.user.email 
+        email: result.user.email,
+        role: result.user.role
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -55,7 +63,8 @@ const register = async (req, res) => {
         firstName: result.user.first_name,
         lastName: result.user.last_name,
         phone: result.user.phone,
-        address: result.user.address
+        address: result.user.address,
+        role: result.user.role
       },
       token
     });
@@ -96,7 +105,8 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { 
         userId: result.user.user_id, 
-        email: result.user.email 
+        email: result.user.email,
+        role: result.user.role
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -110,7 +120,8 @@ const login = async (req, res) => {
         firstName: result.user.first_name,
         lastName: result.user.last_name,
         phone: result.user.phone,
-        address: result.user.address
+        address: result.user.address,
+        role: result.user.role
       },
       token
     });

@@ -6,8 +6,7 @@ import { UserIcon, AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-export const SignupForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
+export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { register } = useAuth();
@@ -20,9 +19,7 @@ export const SignupForm = () => {
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    try {
+    const password = formData.get('password') as string;    try {
       await register({
         firstName,
         lastName,
@@ -30,12 +27,43 @@ export const SignupForm = () => {
         password
       });
       
-      // Registration successful, redirect to main page
-      navigate('/');
-    } catch (error) {
-      setErrors({
-        email: 'Registration failed. Please try again.'
+      // Registration successful, redirect to main page (users always get 'user' role)
+      navigate('/');    } catch (error) {
+      console.error('SignupForm error:', error);
+      console.log('Error details:', {
+        isValidationError: (error as any).isValidationError,
+        details: (error as any).details,
+        message: error instanceof Error ? error.message : String(error)
       });
+      
+      // Handle validation errors from the server
+      if ((error as any).isValidationError && (error as any).details) {
+        const validationErrors: Record<string, string> = {};
+        
+        // Map server validation errors to form fields
+        (error as any).details.forEach((detail: any) => {
+          console.log('Processing validation detail:', detail);
+          const fieldName = detail.path || detail.param;
+          const message = detail.msg || detail.message;
+          
+          if (fieldName && message) {
+            validationErrors[fieldName] = message;
+          }
+        });
+        
+        console.log('Mapped validation errors:', validationErrors);
+        
+        // If we have specific field errors, use them; otherwise show general error
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        } else {
+          setErrors({ email: 'Please check your input and try again.' });
+        }
+      } else {
+        // Handle other types of errors (network, server, etc.)
+        const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+        setErrors({ email: errorMessage });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -47,7 +47,9 @@ const AdminMeals = lazy(() => import('./pages/admin/AdminMeals'))
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'))
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
-const DietitianMessaging = lazy(() => import('./pages/admin/DietitianMessaging'))
+const DietitianLayout = lazy(() => import('./pages/dietitian/DietitianLayout'))
+const DietitianDashboard = lazy(() => import('./pages/dietitian/DietitianDashboard'))
+const DietitianMessaging = lazy(() => import('./pages/dietitian/DietitianMessaging'))
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -129,7 +131,8 @@ export function App() {
                           </ErrorBoundaryContainer>
                         </ProtectedRoute>
                       }
-                    >                      <Route index element={<AccountDashboard />} />
+                    >
+                      <Route index element={<AccountDashboard />} />
                       <Route path="dashboard" element={<AccountDashboard />} />
                       <Route path="orders" element={<OrderHistory />} />
                       <Route path="orders/:orderId" element={<OrderDetails />} />
@@ -138,7 +141,7 @@ export function App() {
                         element={<SubscriptionManagement />}
                       />
                       <Route path="settings" element={<ProfileSettings />} />
-                      <Route path="admin-setup" element={<AdminSetup />} /> {/* New admin setup route */}
+                      <Route path="admin-setup" element={<AdminSetup />} />
                     </Route>
                     {/* Protected Checkout Routes */}
                     <Route
@@ -161,74 +164,102 @@ export function App() {
                         </ProtectedRoute>
                       }
                     />
-                    {/* Admin Routes */}
+                  </Route>
+
+                  {/* Admin Routes - Outside of RootLayout */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute isAdminRoute>
+                        <ErrorBoundaryContainer name="Admin">
+                          <AdminLayout />
+                        </ErrorBoundaryContainer>
+                      </ProtectedRoute>
+                    }
+                  >
                     <Route
-                      path="/admin"
+                      index
                       element={
-                        <ProtectedRoute isAdminRoute>
-                          <ErrorBoundaryContainer name="Admin">
-                            <AdminLayout />
-                          </ErrorBoundaryContainer>
-                        </ProtectedRoute>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminDashboard />
+                        </Suspense>
                       }
-                    >
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminDashboard />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="orders"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminOrders />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="meals"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminMeals />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="customers"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminCustomers />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="subscriptions"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminSubscriptions />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="settings"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <AdminSettings />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="dietitian-messaging"
-                        element={
-                          <Suspense fallback={<LoadingFallback />}>
-                            <DietitianMessaging />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
+                    />
+                    <Route
+                      path="orders"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminOrders />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="meals"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminMeals />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="customers"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminCustomers />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="subscriptions"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminSubscriptions />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="settings"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdminSettings />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="dietitian-messaging"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <DietitianMessaging />
+                        </Suspense>
+                      }
+                    />
+                  </Route>                  {/* Dietitian Routes - Outside of RootLayout */}
+                  <Route
+                    path="/dietitian"
+                    element={
+                      <ProtectedRoute isDietitianRoute>
+                        <ErrorBoundaryContainer name="Dietitian">
+                          <DietitianLayout />
+                        </ErrorBoundaryContainer>
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <DietitianDashboard />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="messages"
+                      element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <DietitianMessaging />
+                        </Suspense>
+                      }
+                    />
                   </Route>
                 </Routes>
               </CartProvider>

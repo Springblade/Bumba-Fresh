@@ -48,7 +48,7 @@ export interface User {
   lastName: string;
   address?: Address;
   isAdmin?: boolean;  // Add the isAdmin property
-  role?: 'user' | 'admin' | 'support';
+  role?: 'user' | 'admin' | 'dietitian';
 }
 
 export interface Address {

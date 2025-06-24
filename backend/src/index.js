@@ -35,15 +35,33 @@ app.use('/api/', limiter);
 // More strict rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: 50, // Temporarily increased for testing - Limit each IP to 50 requests per windowMs
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  'http://localhost:3000', // Auth test server
+  'http://127.0.0.1:3000', // Alternative localhost
+  'http://localhost:8080', // Alternative frontend port
+  'null' // For file:// protocol (direct HTML opening)Add commentMore actions
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']

@@ -106,8 +106,7 @@ INSERT INTO account (email, password, first_name, last_name, role) VALUES
 ('admin@bumba.com', '$2a$12$PPxUm6G6T5GKlDUQe.4vl.8yguwURlmoMaH1eou9KvGfd0zNwKPH2', 'Admin', 'User', 'admin'),
 --password: dietitian123
 ('dietitian@bumba.com', '$2a$12$9KO5rqtCDFP/7tfY8IP2QOLDPH.KQgTohcJLvShJPN1mJP60.1TN.', 'Dietitian', 'Professional', 'dietitian'),
---password: StrongP@ssw0rd2024!
-('testUser@gmail.com', '$2a$12$S2hdmytXbrN8hWuXjTEYNOyv5cPzOxX4EEmCzkGR4.CYK9L8TPSru', 'Test', 'User', 'user');
+
 
 
 

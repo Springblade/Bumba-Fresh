@@ -9,7 +9,8 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
     endpoint, 
     hasToken: !!token,
     tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
-    method: options?.method || 'GET'
+    method: options?.method || 'GET',
+    body: options?.body ? 'Present' : 'None'
   });
   
   const response = await fetch(url, {
@@ -29,7 +30,7 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
     ok: response.ok,
     url: response.url
   });
-    if (!response.ok) {
+  if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     console.error('❌ API Error Response:', error);
     
@@ -39,6 +40,15 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
       localStorage.removeItem('authToken');
       localStorage.removeItem('currentUser');
       throw new Error('Authentication failed. Please log in again.');
+    }
+    
+    // For validation errors, create a custom error with details
+    if (response.status === 400 && error.details) {
+      const validationError = new Error(error.error || 'Validation failed');
+      (validationError as any).details = error.details;
+      (validationError as any).isValidationError = true;
+      console.error('Validation Error Details:', error.details); // Better debugging for validation errors
+      throw validationError;
     }
     
     throw new Error(error.message || error.error || `API error: ${response.status}`);

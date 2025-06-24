@@ -160,9 +160,8 @@ const DietitianMessaging: React.FC = () => {
     
     loadMessages();
   }, [activeConversation, conversations, messageStore]);
-  
-  // Function to generate contextual replies based on message content
-  const generateUserReply = useCallback((dietitianMessage: string, userName: string): string => {
+    // Function to generate contextual replies based on message content
+  const generateUserReply = useCallback((dietitianMessage: string): string => {
     const lowerMessage = dietitianMessage.toLowerCase();
     
     if (lowerMessage.includes('meal plan') || lowerMessage.includes('diet plan')) {
@@ -220,10 +219,9 @@ const DietitianMessaging: React.FC = () => {
     if (Math.random() > 0.3) {
       const selectedConv = conversations.find(c => c.id === activeConversation);
       
-      setTimeout(() => {
-        const replyMessage: ChatMessage = {
+      setTimeout(() => {        const replyMessage: ChatMessage = {
           id: `msg-${Date.now() + 1}`,
-          content: generateUserReply(messageInput, selectedConv?.userName || 'User'),
+          content: generateUserReply(messageInput),
           sender: 'user',
           userId: selectedConv?.userId,
           timestamp: new Date(),

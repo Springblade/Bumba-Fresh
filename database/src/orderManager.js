@@ -57,32 +57,79 @@ class OrderManager {
     }
   }
   /**
+   * Get order by ID and user ID (for security - users can only see their own orders)
+   * @param {number} orderId - Order ID
+   * @param {number} userId - User ID
+   * @returns {Promise<Object>} Operation result with order data
+   */
+  static async getOrderByIdAndUserId(orderId, userId) {
+    const query = `
+      SELECT o.order_id, o.user_id, o.total_price, o.status, o.order_date,
+             a.email, a.first_name, a.last_name
+      FROM "order" o
+      JOIN account a ON o.user_id = a.user_id
+      WHERE o.order_id = $1 AND o.user_id = $2
+    `;
+    
+    try {
+      const result = await db.query(query, [orderId, userId]);
+      
+      if (result.rows.length === 0) {
+        return {
+          success: false,
+          message: 'Order not found'
+        };
+      }
+      
+      return {
+        success: true,
+        order: result.rows[0],
+        message: 'Order retrieved successfully'
+      };
+    } catch (error) {
+      console.error('Error getting order by ID and user ID:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }  /**
    * Get orders by user ID
    * @param {number} userId - User ID
    * @param {string} status - Optional status filter
-   * @returns {Promise<Array>} Array of orders
-   */  static async getOrdersByUserId(userId, status = null) {
+   * @returns {Promise<Object>} Operation result with orders array
+   */    static async getOrdersByUserId(userId, status = null) {
     let query = `
-      SELECT order_id, user_id, total_price, status, order_date
-      FROM "order" 
-      WHERE user_id = $1
+      SELECT o.order_id, o.user_id, o.total_price, o.status, o.order_date,
+             COALESCE(SUM(om.quantity), 0) as items_count
+      FROM "order" o
+      LEFT JOIN order_meal om ON o.order_id = om.order_id
+      WHERE o.user_id = $1
     `;
     
     const params = [userId];
     
     if (status) {
-      query += ' AND status = $2';
+      query += ' AND o.status = $2';
       params.push(status);
     }
     
-    query += ' ORDER BY order_date DESC';
+    query += ' GROUP BY o.order_id, o.user_id, o.total_price, o.status, o.order_date ORDER BY o.order_date DESC';
     
     try {
       const result = await db.query(query, params);
-      return result.rows;
+      return {
+        success: true,
+        orders: result.rows,
+        message: 'Orders retrieved successfully'
+      };
     } catch (error) {
       console.error('Error getting orders by user ID:', error);
-      return [];
+      return {
+        success: false,
+        error: error.message,
+        orders: []
+      };
     }
   }
   /**

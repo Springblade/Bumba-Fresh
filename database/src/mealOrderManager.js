@@ -72,7 +72,7 @@ class MealOrderManager {
    */  static async getMealsByOrderId(orderId) {
     const query = `
       SELECT om.order_id, om.meal_id, om.quantity, om.unit_price,
-             i.meal, i.quantity as available_quantity, i.price
+             i.meal, i.quantity as available_quantity, i.price, i.image_url
       FROM order_meal om
       JOIN inventory i ON om.meal_id = i.meal_id
       WHERE om.order_id = $1

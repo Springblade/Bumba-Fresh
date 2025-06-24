@@ -11,6 +11,7 @@ const mealsRoutes = require('./routes/meals');
 const ordersRoutes = require('./routes/orders');
 const plansRoutes = require('./routes/plans');
 const usersRoutes = require('./routes/users');
+const deliveryRoutes = require('./routes/delivery');
 const favoritesRoutes = require('./routes/favorites');
 
 // Import middleware
@@ -27,7 +28,7 @@ app.use(compression());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000, // Limit each IP to 100 requests per windowMs
+  max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
@@ -35,7 +36,7 @@ app.use('/api/', limiter);
 // More strict rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000, // Limit each IP to 5 requests per windowMs
+  max: 50, // Temporarily increased for testing - Limit each IP to 50 requests per windowMs
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/api/auth/login', authLimiter);
@@ -47,7 +48,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Auth test server
   'http://127.0.0.1:3000', // Alternative localhost
   'http://localhost:8080', // Alternative frontend port
-  'null' // For file:// protocol (direct HTML opening)
+  'null' // For file:// protocol (direct HTML opening)Add commentMore actions
 ];
 
 app.use(cors({
@@ -90,20 +91,22 @@ app.use('/api/meals', mealsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/delivery', deliveryRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
 // Root endpoint
-app.get('/', (req, res) => {
-  res.json({
+app.get('/', (req, res) => {  res.json({
     message: 'Bumba Fresh API',
     version: '1.0.0',
     status: 'running',
     endpoints: {
-      health: '/health',      auth: '/api/auth',
+      health: '/health',
+      auth: '/api/auth',
       meals: '/api/meals',
       orders: '/api/orders',
       plans: '/api/plans',
       users: '/api/users',
+      delivery: '/api/delivery',
       favorites: '/api/favorites'
     }
   });

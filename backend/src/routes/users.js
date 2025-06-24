@@ -1,9 +1,39 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
-const authMiddleware = require('../middleware/auth');
-const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+// Placeholder route handlers
+const getUserProfile = async (req, res) => {
+  try {
+    res.json({
+      message: 'User profile endpoint available',
+      user: req.user || null
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch user profile'
+    });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    res.json({
+      message: 'Update user profile endpoint available',
+      user: req.user || null
+    });
+  } catch (error) {
+    console.error('Update user profile error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to update user profile'
+    });
+  }
+};
 
 // Validation rules
 const updateProfileValidation = [
@@ -29,7 +59,7 @@ const updateProfileValidation = [
 ];
 
 // Routes (all protected)
-router.get('/profile', authMiddleware, userController.getUserProfile);
-router.put('/profile', authMiddleware, updateProfileValidation, userController.updateUserProfile);
+router.get('/profile', authMiddleware, getUserProfile);
+router.put('/profile', authMiddleware, updateProfileValidation, updateUserProfile);
 
 module.exports = router;

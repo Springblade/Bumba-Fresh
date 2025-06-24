@@ -48,14 +48,15 @@ class LoginManager {  /**
         message: 'Login failed due to server error'
       };
     }
-  }  /**
+  }
+  /**
    * Get user data including password hash by email
    * @param {string} identifier - Email (username support removed)
    * @returns {Promise<Object|null>} User object with password or null
    */
   static async getUserWithPassword(identifier) {
     const query = `
-      SELECT user_id, password, email, first_name, last_name, phone, address, role 
+      SELECT user_id, password, email, first_name, last_name, phone, address, role
       FROM account 
       WHERE email = $1
     `;
@@ -121,7 +122,8 @@ class LoginManager {  /**
       console.error('Error getting user profile:', error);
       return null;
     }
-  }  /**
+  }
+  /**
    * Get user by ID (without password)
    * @param {number} userId - User ID
    * @returns {Promise<Object>} User profile result

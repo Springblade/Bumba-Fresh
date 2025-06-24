@@ -1,16 +1,14 @@
-import React, { useCallback, useEffect, useState, Suspense, lazy } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Dialog } from './ui/Dialog';
 import { Button } from './ui/Button';
 import { Loader2Icon } from 'lucide-react';
 import { MealSearchBar } from './meals/MealSearchBar';
-import { generateDummyMeals } from '../utils/mealGenerator';
+import { getAllMeals } from '../services/meals';
 import { MealSelectionGrid } from './subscription/MealSelectionGrid';
 import { LoadingState } from './subscription/LoadingState';
 import { ErrorState } from './subscription/ErrorState';
-// Lazy load the MealSelectionItem component
-const MealSelectionItem = lazy(() => import('./meals/MealSelectionItem').then(mod => ({
-  default: mod.MealSelectionItem
-})));
+import { formatCurrency } from '../utils/priceUtils';
+
 interface Meal {
   id: number;
   name: string;
@@ -21,6 +19,7 @@ interface Meal {
   prepTime: string;
   tags: string[];
 }
+
 interface MealSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,12 +28,12 @@ interface MealSelectionModalProps {
   currentSelections?: string[];
   planName: string;
 }
+
 export const MealSelectionModal = ({
   isOpen,
   onClose,
   onSave,
   mealsPerWeek,
-  currentSelections = [],
   planName
 }: MealSelectionModalProps) => {
   const [selectedMeals, setSelectedMeals] = useState<number[]>([]);
@@ -42,17 +41,43 @@ export const MealSelectionModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  // Reset state when modal opens
+  const [allMeals, setAllMeals] = useState<Meal[]>([]);
+
+  // Reset state when modal opens and fetch meals
   useEffect(() => {
     if (isOpen) {
       setSelectedMeals([]);
       setSearchQuery('');
       setError(null);
-      setIsLoading(false);
+      setIsLoading(true);
+      
+      const fetchMeals = async () => {
+        try {
+          const meals = await getAllMeals();
+          // Transform API meals to match the expected interface
+          const transformedMeals: Meal[] = meals.map(meal => ({
+            id: meal.id,
+            name: meal.name,
+            description: meal.description,
+            image: meal.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+            price: formatCurrency(meal.price),
+            calories: meal.calories ? `${meal.calories}` : '400',
+            prepTime: meal.prep_time || '20 min',
+            tags: meal.tags || []
+          }));
+          setAllMeals(transformedMeals);
+        } catch (err) {
+          console.error('Failed to fetch meals:', err);
+          setError('Failed to load meals. Please try again.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchMeals();
     }
   }, [isOpen]);
-  // Memoized meals data
-  const allMeals = generateDummyMeals(12);
+
   // Handle meal selection
   const handleToggleMeal = useCallback((mealId: number) => {
     setSelectedMeals(current => {
@@ -63,6 +88,7 @@ export const MealSelectionModal = ({
       return [...current, mealId];
     });
   }, [mealsPerWeek]);
+
   // Handle save
   const handleSave = useCallback(async () => {
     if (selectedMeals.length !== mealsPerWeek) return;
@@ -82,35 +108,66 @@ export const MealSelectionModal = ({
       setIsSaving(false);
     }
   }, [selectedMeals, mealsPerWeek, onSave, onClose, allMeals]);
+
   if (error) {
-    return <Dialog isOpen={isOpen} onClose={onClose} title="Error" description={error}>
+    return (
+      <Dialog isOpen={isOpen} onClose={onClose} title="Error" description={error}>
         <ErrorState message={error} onRetry={() => setError(null)} />
-      </Dialog>;
+      </Dialog>
+    );
   }
-  return <Dialog isOpen={isOpen} onClose={onClose} title={`Select Your Meals - ${planName}`} description={`Choose ${mealsPerWeek} meals for your subscription`}>
+
+  return (
+    <Dialog 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={`Select Your Meals - ${planName}`} 
+      description={`Choose ${mealsPerWeek} meals for your subscription`}
+    >
       <div className="space-y-6">
         <MealSearchBar value={searchQuery} onChange={setSearchQuery} />
+        
         {/* Progress indicator */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-gray-600">
             Selected: {selectedMeals.length} of {mealsPerWeek}
           </span>
         </div>
+        
         {/* Meal grid with loading state */}
-        {isLoading ? <LoadingState /> : <MealSelectionGrid meals={allMeals} selectedMeals={selectedMeals} onToggleMeal={handleToggleMeal} maxSelections={mealsPerWeek} />}
+        {isLoading ? (
+          <LoadingState />
+        ) : (
+          <MealSelectionGrid 
+            meals={allMeals} 
+            selectedMeals={selectedMeals} 
+            onToggleMeal={handleToggleMeal} 
+            maxSelections={mealsPerWeek} 
+          />
+        )}
       </div>
+      
       {/* Footer */}
       <div className="mt-6 flex justify-end gap-3">
         <Button variant="ghost" onClick={onClose} disabled={isSaving}>
           Cancel
         </Button>
-        <Button onClick={handleSave} disabled={selectedMeals.length !== mealsPerWeek || isSaving}>
-          {isSaving ? <>
+        <Button 
+          onClick={handleSave} 
+          disabled={selectedMeals.length !== mealsPerWeek || isSaving}
+        >
+          {isSaving ? (
+            <>
               <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
               Saving...
-            </> : 'Save Selections'}
+            </>
+          ) : (
+            'Save Selections'
+          )}
         </Button>
       </div>
-    </Dialog>;
+    </Dialog>
+  );
 };
+
 export default MealSelectionModal;

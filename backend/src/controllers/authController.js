@@ -1,3 +1,4 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { AccountCreator, LoginManager } = require('../../../database/src');
@@ -12,14 +13,21 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
  */
 const register = async (req, res) => {
   try {
+    // Log the incoming request for debugging
+    console.log('🔍 Registration request received:', {
+      body: req.body,
+      headers: req.headers['content-type']
+    });
+
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()
       });
-    }    const { password, email, firstName, lastName, phone, address } = req.body;
+    }const { password, email, firstName, lastName, phone, address } = req.body;
 
     // Create account using the database layer
     const result = await AccountCreator.createAccount(
@@ -45,7 +53,9 @@ const register = async (req, res) => {
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
-    );    res.status(201).json({
+    );
+
+    res.status(201).json({
       message: 'User registered successfully',
       user: {
         id: result.user.user_id,
@@ -100,7 +110,9 @@ const login = async (req, res) => {
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
-    );    res.json({
+    );
+
+    res.json({
       message: 'Login successful',
       user: {
         id: result.user.user_id,

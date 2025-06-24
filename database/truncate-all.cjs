@@ -3,9 +3,9 @@ const { Pool } = require('pg');
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'Bumba_fresh',
+  database: process.env.DB_NAME || 'mealkits',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '999999'
+  password: process.env.DB_PASSWORD || '22092004A'
 });
 
 async function truncateAllTables() {

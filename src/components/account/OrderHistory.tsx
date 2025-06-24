@@ -1,9 +1,13 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight as ChevronRightIcon, UtensilsIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
-type OrderStatus = 'processing' | 'shipped' | 'delivered' | 'cancelled';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { getUserOrders } from '../../services/orders';
+
+type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
+
 interface Order {
   id: string;
   date: string;
@@ -16,10 +20,20 @@ const statusStyles: Record<OrderStatus, {
   text: string;
   label: string;
 }> = {
-  processing: {
+  pending: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-800',
+    label: 'Pending'
+  },
+  confirmed: {
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    label: 'Confirmed'
+  },
+  preparing: {
     bg: 'bg-yellow-100',
     text: 'text-yellow-800',
-    label: 'Processing'
+    label: 'Preparing'
   },
   shipped: {
     bg: 'bg-blue-100',
@@ -37,26 +51,96 @@ const statusStyles: Record<OrderStatus, {
     label: 'Cancelled'
   }
 };
-// Mock data - replace with real data
-const orders: Order[] = [{
-  id: 'BUMBA-12345',
-  date: '2024-02-15',
-  total: 89.97,
-  status: 'delivered',
-  items: 3
-}, {
-  id: 'BUMBA-12346',
-  date: 'processing',
-  total: 59.98,
-  status: 'processing',
-  items: 2
-}];
 export const OrderHistory = () => {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        console.log('🔄 Fetching user orders...');
+        const apiOrders = await getUserOrders();
+        console.log('📦 Received orders:', apiOrders);
+        
+        // Validate that apiOrders is an array
+        if (!Array.isArray(apiOrders)) {
+          console.error('❌ API response is not an array:', apiOrders);
+          throw new Error('Invalid response format: expected array of orders');
+        }
+        
+        // Transform API orders to component format
+        const transformedOrders: Order[] = apiOrders.map((apiOrder) => {
+          // Validate each order object
+          if (!apiOrder || typeof apiOrder !== 'object') {
+            console.error('❌ Invalid order object:', apiOrder);
+            throw new Error('Invalid order data received');
+          }
+          
+          return {
+            id: `BUMBA-${apiOrder.order_id}`,
+            date: apiOrder.order_date,
+            total: Number(apiOrder.total_price) || 0,
+            status: apiOrder.status as OrderStatus,
+            items: Number(apiOrder.items_count) || 0
+          };
+        });
+        
+        console.log('✅ Transformed orders:', transformedOrders);
+        setOrders(transformedOrders);
+      } catch (err) {
+        console.error('❌ Error fetching orders:', err);
+        
+        // Don't throw the error - just set error state
+        // Check if it's an authentication error
+        if (err instanceof Error && (err.message.includes('Authorization') || err.message.includes('401'))) {
+          setError('Please log in to view your order history');
+        } else {
+          setError(`Failed to load orders: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+        setOrders([]); // Set empty array on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-600 mb-4">{error}</div>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   if (orders.length === 0) {
-    return <EmptyState icon={<UtensilsIcon className="w-12 h-12" />} title="No orders yet" description="You haven't placed any orders yet. Start exploring our delicious meals!" action={<Button onClick={() => navigate('/menu')} size="lg">
+    return (
+      <EmptyState 
+        icon={<UtensilsIcon className="w-12 h-12" />} 
+        title="No orders yet" 
+        description="You haven't placed any orders yet. Start exploring our delicious meals!" 
+        action={
+          <Button onClick={() => navigate('/menu')} size="lg">
             Start Shopping
-          </Button>} />;
+          </Button>
+        } 
+      />
+    );
   }
   return <div className="space-y-4">
       {orders.map(order => <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:border-gray-300 transition-colors">

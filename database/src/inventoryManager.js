@@ -119,23 +119,43 @@ class InventoryManager {  /**
       FROM inventory 
       WHERE meal_id = $1
     `;
-    
-    try {
+      try {
       const result = await db.query(query, [mealId]);
-      return result.rows.length > 0 ? result.rows[0] : null;
+      if (result.rows.length > 0) {
+        const meal = result.rows[0];
+        return {
+          ...meal,
+          price: parseFloat(meal.price) // Ensure price is a number
+        };
+      }
+      return null;
     } catch (error) {
       console.error('Error getting meal by ID:', error);
       return null;
     }
-  }
-  /**
+  }  /**
    * Get all meals
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} Array of meals
    */
   static async getAllMeals(filters = {}) {
     let query = `
-      SELECT meal_id, meal, quantity, price
+      SELECT 
+        meal_id as id,
+        meal as name,
+        description,
+        quantity,
+        price,
+        category,
+        dietary_options,
+        image_url,
+        'Healthy, Fresh' as tags,
+        '20 min' as prep_time,
+        CASE 
+          WHEN category = 'protein' THEN 450
+          WHEN category = 'vegetarian' THEN 350
+          ELSE 400 
+        END as calories
       FROM inventory 
       WHERE 1=1
     `;
@@ -156,11 +176,25 @@ class InventoryManager {  /**
       params.push(filters.minPrice);
     }
 
+    // Add category filter
+    if (filters.category) {
+      paramCount++;
+      query += ` AND category = $${paramCount}`;
+      params.push(filters.category);
+    }
+
     query += ' ORDER BY meal ASC';
     
     try {
       const result = await db.query(query, params);
-      return result.rows;
+        // Transform the results to include proper tags array and other frontend expectations
+      const transformedResults = result.rows.map(row => ({
+        ...row,
+        price: parseFloat(row.price), // Ensure price is a number
+        tags: row.dietary_options ? row.dietary_options.split(',').map(tag => tag.trim()) : ['Fresh', 'Healthy']
+      }));
+      
+      return transformedResults;
     } catch (error) {
       console.error('Error getting all meals:', error);
       return [];

@@ -54,7 +54,8 @@ class AccountCreator {
         error: error.message
       };
     }
-  }  /**
+  }
+  /**
    * Insert a new user into the database
    * @param {string} hashedPassword - Hashed password
    * @param {string} email - Email
@@ -63,10 +64,9 @@ class AccountCreator {
    * @param {string} phone - Phone number
    * @param {string} address - Address
    * @returns {Promise<Object>} Database result
-   */
-  static async insertUser(hashedPassword, email, firstName, lastName, phone, address) {
+   */  static async insertUser(hashedPassword, email, firstName, lastName, phone, address) {
     const query = `
-      INSERT INTO account (password, email, first_name, last_name, phone, address, role) 
+      INSERT INTO account (password, email, first_name, last_name, phone, address, role)
       VALUES ($1, $2, $3, $4, $5, $6, 'user') 
       RETURNING user_id, email, first_name, last_name, phone, address, role
     `;
@@ -113,7 +113,7 @@ class AccountCreator {
    */
   static async getUserByEmail(email) {
     const query = `
-      SELECT user_id, email, first_name, last_name, phone, address, role 
+      SELECT user_id, email, first_name, last_name, phone, address, role
       FROM account 
       WHERE email = $1
     `;

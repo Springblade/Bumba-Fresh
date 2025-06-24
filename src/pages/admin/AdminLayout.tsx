@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { 
   LayoutGrid, 
@@ -7,7 +7,8 @@ import {
   UtensilsCrossed, 
   CalendarRange, 
   Settings, 
-  LogOut
+  LogOut,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,6 +31,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Customers', to: '/admin/customers', icon: Users },
     { name: 'Meal Management', to: '/admin/meals', icon: UtensilsCrossed },
     { name: 'Subscriptions', to: '/admin/subscriptions', icon: CalendarRange },
+    { name: 'Nutrition Chat', to: '/admin/dietitian-messaging', icon: MessageCircle },
     { name: 'Settings', to: '/admin/settings', icon: Settings },
   ];
 

@@ -62,15 +62,30 @@ export interface Address {
 export interface ChatMessage {
   id: string;
   content: string;
-  sender: 'user' | 'agent';
+  sender: 'user' | 'agent' | 'dietitian';  // Add 'dietitian' role
   timestamp: Date;
   read: boolean;
+  category?: 'nutrition' | 'general';  // Track message purpose
+  userId?: string;  // Track which user sent the message
 }
 
 export interface ChatState {
   isOpen: boolean;
   messages: ChatMessage[];
   unreadCount: number;
+}
+
+// Add conversation type for the admin interface
+export interface Conversation {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  unreadCount: number;
+  status: 'active' | 'archived';
 }
 
 // Admin related types

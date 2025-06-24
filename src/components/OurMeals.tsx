@@ -187,12 +187,23 @@ const OurMeals = () => {
           onFilterChange={setActiveQuickFilter}
           selectedFilters={selectedFilters}
           onOpenDetailedFilters={() => setIsFilterModalOpen(true)}
-          quickFilters={[
-            { id: 'all', label: 'All Meals', icon: UtensilsIcon },
-            { id: 'vegetarian', label: 'Vegetarian', icon: LeafIcon },
-            { id: 'high-protein', label: 'High Protein', icon: ZapIcon },
-            { id: 'popular', label: 'Popular', icon: SparklesIcon }
-          ]}
+          quickFilters={[{
+          id: 'all',
+          label: 'All Meals',
+          icon: UtensilsIcon
+        }, {
+          id: 'new',
+          label: 'New',
+          icon: SparklesIcon
+        }, {
+          id: 'popular',
+          label: 'Most Popular',
+          icon: ZapIcon
+        }, {
+          id: 'bestseller',
+          label: 'Bestsellers',
+          icon: LeafIcon
+        }]}
           totalResults={totalResults} 
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">

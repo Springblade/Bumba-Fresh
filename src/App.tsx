@@ -47,6 +47,7 @@ const AdminMeals = lazy(() => import('./pages/admin/AdminMeals'))
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'))
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const DietitianMessaging = lazy(() => import('./pages/admin/DietitianMessaging'))
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -216,6 +217,14 @@ export function App() {
                         element={
                           <Suspense fallback={<LoadingFallback />}>
                             <AdminSettings />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="dietitian-messaging"
+                        element={
+                          <Suspense fallback={<LoadingFallback />}>
+                            <DietitianMessaging />
                           </Suspense>
                         }
                       />

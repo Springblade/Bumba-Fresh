@@ -130,14 +130,14 @@ const ConfigureSubscriptionPage = () => {
       })
     );
     
-    // Fix: Match the expected type for addSubscriptionItem
+    // Add subscription item with all required properties
     addSubscriptionItem({
+      type: 'subscription', // Add the missing type property
       planName: planName || '',
       weeks: billingFrequency === 'monthly' ? 4 : 1,
       mealsByWeek,
       totalCost: planDetails.finalTotal,
-      // Remove billingFrequency if it's not in the expected type
-      // or use the proper property name as expected by the function
+      billingFrequency: billingFrequency as 'weekly' | 'monthly' // Add the billing frequency
     });
     
     navigate('/cart');

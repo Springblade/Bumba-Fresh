@@ -55,38 +55,91 @@ export const OrderHistory = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);  useEffect(() => {
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
         console.log('🔄 Fetching user orders...');
-        const apiOrders = await getUserOrders();
-        console.log('📦 Received orders:', apiOrders);
+        const response = await getUserOrders();
+        console.log('📦 Received response:', response);
         
-        // Validate that apiOrders is an array
-        if (!Array.isArray(apiOrders)) {
-          console.error('❌ API response is not an array:', apiOrders);
-          throw new Error('Invalid response format: expected array of orders');
+        // Handle different response formats
+        let apiOrders = [];
+        
+        if (Array.isArray(response)) {
+          apiOrders = response;
+        } else if (response && typeof response === 'object') {
+          if (Array.isArray(response.orders)) {
+            apiOrders = response.orders;
+          } else if (Array.isArray(response.data)) {
+            apiOrders = response.data;
+          } else if (response.message && response.message.includes('No orders found')) {
+            // Handle case where user has no orders
+            console.log('ℹ️ No orders found for user');
+            setOrders([]);
+            setIsLoading(false);
+            return;
+          }
         }
         
-        // Transform API orders to component format
-        const transformedOrders: Order[] = apiOrders.map((apiOrder) => {
-          // Validate each order object
-          if (!apiOrder || typeof apiOrder !== 'object') {
-            console.error('❌ Invalid order object:', apiOrder);
-            throw new Error('Invalid order data received');
+        // If we still don't have an array, log the issue but don't throw an error
+        if (!Array.isArray(apiOrders)) {
+          console.error('❌ Could not extract orders array from response:', response);
+          apiOrders = []; // Set to empty array instead of throwing
+        }
+        
+        // Transform API orders to component format with safe fallbacks
+        const transformedOrders: Order[] = [];
+        
+        for (const apiOrder of apiOrders) {
+          try {
+            // Skip if not an object
+            if (!apiOrder || typeof apiOrder !== 'object') {
+              console.warn('⚠️ Skipping invalid order object:', apiOrder);
+              continue;
+            }
+            
+            // Extract order ID with fallbacks
+            const orderId = apiOrder.order_id || apiOrder.id || apiOrder.orderId || 'unknown';
+            
+            // Format order ID for display
+            const displayId = `BUMBA-${orderId}`;
+            
+            // Extract date with fallbacks
+            const dateStr = apiOrder.order_date || apiOrder.date || apiOrder.created_at || new Date().toISOString();
+            
+            // Extract total with fallbacks
+            const totalPrice = apiOrder.total_price || apiOrder.total || apiOrder.totalPrice || 0;
+            
+            // Extract status with fallbacks and validation
+            let status = (apiOrder.status || 'pending').toLowerCase();
+            if (!Object.keys(statusStyles).includes(status)) {
+              console.warn(`⚠️ Unknown status "${status}", defaulting to "pending"`);
+              status = 'pending';
+            }
+            
+            // Extract items count with fallbacks
+            const itemsCount = apiOrder.items_count || 
+                              (apiOrder.items ? apiOrder.items.length : 0) || 
+                              apiOrder.itemsCount || 
+                              0;
+            
+            transformedOrders.push({
+              id: displayId,
+              date: dateStr,
+              total: Number(totalPrice),
+              status: status as OrderStatus,
+              items: Number(itemsCount)
+            });
+          } catch (err) {
+            // Log but continue processing other orders
+            console.warn('⚠️ Error transforming order:', err);
           }
-          
-          return {
-            id: `BUMBA-${apiOrder.order_id}`,
-            date: apiOrder.order_date,
-            total: Number(apiOrder.total_price) || 0,
-            status: apiOrder.status as OrderStatus,
-            items: Number(apiOrder.items_count) || 0
-          };
-        });
+        }
         
         console.log('✅ Transformed orders:', transformedOrders);
         setOrders(transformedOrders);
@@ -95,11 +148,18 @@ export const OrderHistory = () => {
         
         // Don't throw the error - just set error state
         // Check if it's an authentication error
-        if (err instanceof Error && (err.message.includes('Authorization') || err.message.includes('401'))) {
-          setError('Please log in to view your order history');
+        if (err instanceof Error) {
+          if (err.message.includes('Authorization') || err.message.includes('401')) {
+            setError('Please log in to view your order history');
+          } else if (err.message.includes('Validation')) {
+            setError('Failed to load orders: Please try again later');
+          } else {
+            setError(`Failed to load orders: ${err.message}`);
+          }
         } else {
-          setError(`Failed to load orders: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          setError('Failed to load orders: Unknown error');
         }
+        
         setOrders([]); // Set empty array on error
       } finally {
         setIsLoading(false);
@@ -121,9 +181,14 @@ export const OrderHistory = () => {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">{error}</div>
-        <Button onClick={() => window.location.reload()} variant="outline">
-          Try Again
-        </Button>
+        <div className="space-y-2">
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Try Again
+          </Button>
+          <Button onClick={() => navigate('/menu')} variant="primary" className="ml-2">
+            Browse Menu
+          </Button>
+        </div>
       </div>
     );
   }
@@ -142,8 +207,11 @@ export const OrderHistory = () => {
       />
     );
   }
-  return <div className="space-y-4">
-      {orders.map(order => <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:border-gray-300 transition-colors">
+
+  return (
+    <div className="space-y-4">
+      {orders.map(order => (
+        <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:border-gray-300 transition-colors">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Order ID</p>
@@ -173,6 +241,8 @@ export const OrderHistory = () => {
               <ChevronRightIcon className="w-4 h-4 ml-2" />
             </Button>
           </div>
-        </div>)}
-    </div>;
+        </div>
+      ))}
+    </div>
+  );
 };

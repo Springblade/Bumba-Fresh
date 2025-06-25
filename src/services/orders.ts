@@ -60,23 +60,23 @@ export interface CompleteOrderResponse {
 /**
  * Fetch all orders for the current user
  */
-export async function getUserOrders(): Promise<any[]> {
+export async function getUserOrders(): Promise<any> {
   try {
     console.log('🔄 getUserOrders called');
-    const response = await fetchData<any>('/orders/user');
-    console.log('✅ getUserOrders response:', response);
     
-    // Handle different response formats
-    if (response.orders) {
-      return response.orders;
-    } else if (Array.isArray(response)) {
+    // Try the correct endpoint first
+    try {
+      const response = await fetchData<any>('/orders');
+      console.log('✅ getUserOrders response from /orders:', response);
       return response;
-    } else if (response.data && Array.isArray(response.data)) {
-      return response.data;
+    } catch (error) {
+      console.warn('⚠️ Error fetching from /orders, trying /orders/user:', error);
+      
+      // Try alternative endpoint
+      const response = await fetchData<any>('/orders/user');
+      console.log('✅ getUserOrders response from /orders/user:', response);
+      return response;
     }
-    
-    console.error('❌ Unexpected API response structure:', response);
-    return [];
   } catch (error) {
     console.error('❌ Error in getUserOrders:', error);
     throw error;

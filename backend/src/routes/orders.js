@@ -9,31 +9,31 @@ const router = express.Router();
 // Get all orders for the authenticated user
 const getAllOrders = async (req, res) => {
   try {
-    console.log('🔄 Getting orders for user:', req.user?.id);
+    console.log(' Getting orders for user:', req.user?.id);
     const userId = req.user.id;
     const result = await OrderManager.getOrdersByUserId(userId);
     
-    console.log('📦 Order query result:', {
+    console.log(' Order query result:', {
       success: result.success,
       orderCount: result.orders?.length || 0,
       message: result.message
     });
     
     if (!result.success) {
-      console.error('❌ Database error in getAllOrders:', result.message);
+      console.error(' Database error in getAllOrders:', result.message);
       return res.status(500).json({
         error: 'Database error',
         message: result.message
       });
     }
 
-    console.log('✅ Returning orders:', result.orders);
+    console.log(' Returning orders:', result.orders);
     res.json({
       message: 'Orders retrieved successfully',
       orders: result.orders || []
     });
   } catch (error) {
-    console.error('❌ Get orders error:', error);
+    console.error(' Get orders error:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch orders'
@@ -44,9 +44,9 @@ const getAllOrders = async (req, res) => {
 // Get delivery information for a specific order
 const getOrderDelivery = async (req, res) => {
   try {
-    console.log('🚚 DEBUG: getOrderDelivery called');
-    console.log('🚚 DEBUG: req.params:', req.params);
-    console.log('🚚 DEBUG: req.user:', req.user);
+    console.log(' DEBUG: getOrderDelivery called');
+    console.log(' DEBUG: req.params:', req.params);
+    console.log(' DEBUG: req.user:', req.user);
     
     // Validate request
     const errors = validationResult(req);
@@ -60,13 +60,13 @@ const getOrderDelivery = async (req, res) => {
     const orderId = parseInt(req.params.id);
     const userId = req.user.id;
     
-    console.log('🚚 DEBUG: Parsed orderId:', orderId, 'userId:', userId);
+    console.log(' DEBUG: Parsed orderId:', orderId, 'userId:', userId);
 
     // First verify that this order belongs to the user
     const orderResult = await OrderManager.getOrderByIdAndUserId(orderId, userId);
     
     if (!orderResult.success) {
-      console.log('🚚 DEBUG: Order verification failed:', orderResult.message);
+      console.log(' DEBUG: Order verification failed:', orderResult.message);
       return res.status(404).json({
         error: 'Order not found',
         message: orderResult.message
@@ -77,20 +77,20 @@ const getOrderDelivery = async (req, res) => {
     const deliveryResult = await DeliveryManager.getDeliveryByOrderId(orderId);
     
     if (!deliveryResult.success) {
-      console.log('🚚 DEBUG: Delivery fetch failed:', deliveryResult.message);
+      console.log(' DEBUG: Delivery fetch failed:', deliveryResult.message);
       return res.status(404).json({
         error: 'Delivery information not found',
         message: deliveryResult.message
       });
     }
 
-    console.log('✅ DEBUG: Returning delivery info:', deliveryResult.delivery);
+    console.log(' DEBUG: Returning delivery info:', deliveryResult.delivery);
     res.json({
       message: 'Delivery information retrieved successfully',
       delivery: deliveryResult.delivery
     });
   } catch (error) {
-    console.error('❌ DEBUG: Exception in getOrderDelivery:', error);
+    console.error(' DEBUG: Exception in getOrderDelivery:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch delivery information'
@@ -100,14 +100,14 @@ const getOrderDelivery = async (req, res) => {
 
 const getOrderById = async (req, res) => {
   try {
-    console.log('🔍 DEBUG: getOrderById called');
-    console.log('🔍 DEBUG: req.params:', req.params);
-    console.log('🔍 DEBUG: req.user:', req.user);
+    console.log(' DEBUG: getOrderById called');
+    console.log(' DEBUG: req.params:', req.params);
+    console.log(' DEBUG: req.user:', req.user);
     
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('❌ DEBUG: Validation errors:', errors.array());
+      console.log(' DEBUG: Validation errors:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()
@@ -117,34 +117,34 @@ const getOrderById = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     
-    console.log('🔍 DEBUG: Looking for order ID:', id, 'for user ID:', userId);
+    console.log(' DEBUG: Looking for order ID:', id, 'for user ID:', userId);
     
     const result = await OrderManager.getOrderByIdAndUserId(id, userId);
     
-    console.log('🔍 DEBUG: OrderManager result:', result);
+    console.log(' DEBUG: OrderManager result:', result);
     
     if (!result.success) {
       if (result.message === 'Order not found') {
-        console.log('❌ DEBUG: Order not found for user');
+        console.log(' DEBUG: Order not found for user');
         return res.status(404).json({
           error: 'Order not found',
           message: 'Order does not exist or does not belong to you'
         });
       }
-      console.log('❌ DEBUG: Database error:', result.message);
+      console.log(' DEBUG: Database error:', result.message);
       return res.status(500).json({
         error: 'Database error',
         message: result.message
       });
     }
 
-    console.log('✅ DEBUG: Returning order:', result.order);
+    console.log(' DEBUG: Returning order:', result.order);
     res.json({
       message: 'Order retrieved successfully',
       order: result.order
     });
   } catch (error) {
-    console.error('❌ DEBUG: Exception in getOrderById:', error);
+    console.error(' DEBUG: Exception in getOrderById:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch order'
@@ -381,13 +381,13 @@ const orderIdValidation = [
 // Get meals for a specific order
 const getOrderMeals = async (req, res) => {
   try {
-    console.log('🍽️ DEBUG: getOrderMeals called');
-    console.log('🍽️ DEBUG: req.params:', req.params);
-    console.log('🍽️ DEBUG: req.user:', req.user);
+    console.log(' DEBUG: getOrderMeals called');
+    console.log(' DEBUG: req.params:', req.params);
+    console.log(' DEBUG: req.user:', req.user);
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('❌ DEBUG: Validation errors in getOrderMeals:', errors.array());
+      console.log(' DEBUG: Validation errors in getOrderMeals:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()
@@ -397,22 +397,22 @@ const getOrderMeals = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     
-    console.log('🍽️ DEBUG: Looking for meals for order ID:', id, 'for user ID:', userId);
+    console.log(' DEBUG: Looking for meals for order ID:', id, 'for user ID:', userId);
     
     // First verify the order belongs to the user
     const orderResult = await OrderManager.getOrderByIdAndUserId(id, userId);
     
-    console.log('🍽️ DEBUG: Order verification result:', orderResult);
+    console.log(' DEBUG: Order verification result:', orderResult);
     
     if (!orderResult.success) {
       if (orderResult.message === 'Order not found') {
-        console.log('❌ DEBUG: Order not found in getOrderMeals');
+        console.log(' DEBUG: Order not found in getOrderMeals');
         return res.status(404).json({
           error: 'Order not found',
           message: 'Order does not exist or does not belong to you'
         });
       }
-      console.log('❌ DEBUG: Database error in getOrderMeals:', orderResult.message);
+      console.log(' DEBUG: Database error in getOrderMeals:', orderResult.message);
       return res.status(500).json({
         error: 'Database error',
         message: orderResult.message
@@ -422,14 +422,14 @@ const getOrderMeals = async (req, res) => {
     // Get meals for the order
     const meals = await MealOrderManager.getMealsByOrderId(id);
     
-    console.log('🍽️ DEBUG: Meals retrieved:', meals);
+    console.log(' DEBUG: Meals retrieved:', meals);
     
     res.json({
       message: 'Order meals retrieved successfully',
       meals: meals
     });
   } catch (error) {
-    console.error('❌ DEBUG: Exception in getOrderMeals:', error);
+    console.error(' DEBUG: Exception in getOrderMeals:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch order meals'

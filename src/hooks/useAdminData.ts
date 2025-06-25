@@ -69,20 +69,20 @@ export function useAdminData(options: AdminDataOptions = {}) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);  // Fetch dashboard stats
   const fetchStats = useCallback(async (): Promise<AdminStats> => {
     try {
-      console.log('🔄 Fetching admin stats from API...');
+      console.log(' Fetching admin stats from API...');
       // Try the test endpoint first for debugging
       let response;
       try {
         response = await fetchData<{ stats: any }>('/admin/test-stats');
-        console.log('📊 Using test-stats endpoint - Raw API response:', response);      } catch (testError) {
-        console.log('⚠️ Test endpoint failed, trying regular endpoint:', (testError as Error).message);
+        console.log(' Using test-stats endpoint - Raw API response:', response);      } catch (testError) {
+        console.log(' Test endpoint failed, trying regular endpoint:', (testError as Error).message);
         // Fallback to regular endpoint
         response = await fetchData<{ stats: any }>('/admin/stats');
-        console.log('📊 Using regular stats endpoint - Raw API response:', response);
+        console.log(' Using regular stats endpoint - Raw API response:', response);
       }
       
       const apiStats = response.stats;
-      console.log('📈 Parsed stats:', apiStats);
+      console.log(' Parsed stats:', apiStats);
       
       const stats: AdminStats = {
         totalRevenue: apiStats.totalRevenue || 0,
@@ -96,10 +96,10 @@ export function useAdminData(options: AdminDataOptions = {}) {
         }
       };
       
-      console.log('✅ Final transformed stats:', stats);
+      console.log(' Final transformed stats:', stats);
       return stats;
     } catch (error) {
-      console.error('❌ Error fetching admin stats:', error);
+      console.error(' Error fetching admin stats:', error);
       // Return fallback data if API call fails
       const stats: AdminStats = {        
         totalRevenue: 0,
@@ -118,7 +118,7 @@ export function useAdminData(options: AdminDataOptions = {}) {
   // Fetch orders with optional filters
   const fetchOrders = useCallback(async (): Promise<AdminOrder[]> => {
     try {
-      console.log('🔄 Fetching admin orders from API...');
+      console.log(' Fetching admin orders from API...');
       // Build query parameters
       const queryParams = new URLSearchParams();
       if (options.status && options.status !== 'all') {
@@ -130,19 +130,19 @@ export function useAdminData(options: AdminDataOptions = {}) {
       try {
         const testUrl = `/admin/test-orders${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
         response = await fetchData<{ orders: AdminOrder[] }>(testUrl);
-        console.log('📦 Using test-orders endpoint - Raw API response:', response);
+        console.log(' Using test-orders endpoint - Raw API response:', response);
       } catch (testError) {
-        console.log('⚠️ Test orders endpoint failed, trying regular endpoint:', (testError as Error).message);
+        console.log(' Test orders endpoint failed, trying regular endpoint:', (testError as Error).message);
         // Fallback to regular endpoint
         const url = `/admin/orders${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
         response = await fetchData<{ orders: AdminOrder[] }>(url);
-        console.log('📦 Using regular orders endpoint - Raw API response:', response);
+        console.log(' Using regular orders endpoint - Raw API response:', response);
       }
       
-      console.log('✅ Final orders data:', response.orders);
+      console.log(' Final orders data:', response.orders);
       return response.orders || [];
     } catch (error) {
-      console.error('❌ Error fetching admin orders:', error);
+      console.error(' Error fetching admin orders:', error);
       // Return fallback data if API call fails
       return [];
     }
@@ -180,24 +180,24 @@ export function useAdminData(options: AdminDataOptions = {}) {
   }, [options.includeInactive]);  // Fetch customers
   const fetchCustomers = useCallback(async (): Promise<AdminCustomer[]> => {
     try {
-      console.log('🔄 Fetching admin customers from API...');
+      console.log(' Fetching admin customers from API...');
       
       // Try the test endpoint first for debugging
       let response;
       try {
         response = await fetchData<{ customers: AdminCustomer[] }>('/admin/test-customers');
-        console.log('👥 Using test-customers endpoint - Raw API response:', response);
+        console.log(' Using test-customers endpoint - Raw API response:', response);
       } catch (testError) {
-        console.log('⚠️ Test customers endpoint failed, trying regular endpoint:', (testError as Error).message);
+        console.log(' Test customers endpoint failed, trying regular endpoint:', (testError as Error).message);
         // Fallback to regular endpoint
         response = await fetchData<{ customers: AdminCustomer[] }>('/admin/customers');
-        console.log('👥 Using regular customers endpoint - Raw API response:', response);
+        console.log(' Using regular customers endpoint - Raw API response:', response);
       }
       
-      console.log('✅ Final customers data:', response.customers);
+      console.log(' Final customers data:', response.customers);
       return response.customers || [];
     } catch (error) {
-      console.error('❌ Error fetching admin customers:', error);
+      console.error(' Error fetching admin customers:', error);
       // Return empty array if API call fails
       return [];
     }

@@ -45,9 +45,9 @@ export const SubscriptionManagement = () => {
         setIsLoadingData(true);
         setError(null);
         
-        console.log('🔄 Fetching subscription data...');
+        console.log(' Fetching subscription data...');
         const response = await getUserSubscription();
-        console.log('✅ Subscription data received:', response);
+        console.log(' Subscription data received:', response);
         
         if (response.subscription) {
           // Transform the data to match component needs
@@ -64,7 +64,7 @@ export const SubscriptionManagement = () => {
           setSubscription(null);
         }
       } catch (err) {
-        console.error('❌ Error fetching subscription:', err);
+        console.error(' Error fetching subscription:', err);
         setError('Failed to load subscription information');
         setSubscription(null);
       } finally {

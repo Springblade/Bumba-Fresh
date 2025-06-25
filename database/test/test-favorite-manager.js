@@ -26,18 +26,18 @@ class FavoriteManagerTest {
 
   async runTest(testName, testFunction) {
     try {
-      console.log(`\n🧪 Running test: ${testName}`);
+      console.log(`\n Running test: ${testName}`);
       await testFunction();
-      console.log(`✅ ${testName} - PASSED`);
+      console.log(` ${testName} - PASSED`);
       this.testResults.push({ name: testName, status: 'PASSED' });
     } catch (error) {
-      console.error(`❌ ${testName} - FAILED: ${error.message}`);
+      console.error(` ${testName} - FAILED: ${error.message}`);
       this.testResults.push({ name: testName, status: 'FAILED', error: error.message });
     }
   }
 
   async setupTestData() {
-    console.log('🔄 Setting up test data...');
+    console.log(' Setting up test data...');
     
     // Get or create a test user
     const userQuery = `
@@ -70,15 +70,15 @@ class FavoriteManagerTest {
     // Clean up any existing test favorites
     await this.pool.query('DELETE FROM favorite WHERE user_id = $1', [this.testUserId]);
     
-    console.log(`✅ Test setup complete. User ID: ${this.testUserId}, Meal IDs: ${this.testMealIds.join(', ')}`);
+    console.log(` Test setup complete. User ID: ${this.testUserId}, Meal IDs: ${this.testMealIds.join(', ')}`);
   }
 
   async cleanupTestData() {
-    console.log('\n🧹 Cleaning up test data...');
+    console.log('\n Cleaning up test data...');
     
     if (this.testUserId) {
       await this.pool.query('DELETE FROM favorite WHERE user_id = $1', [this.testUserId]);
-      console.log('✅ Test favorites cleaned up');
+      console.log(' Test favorites cleaned up');
     }
   }
 
@@ -94,7 +94,7 @@ class FavoriteManagerTest {
       throw new Error('Add favorite did not return expected data structure');
     }
     
-    console.log(`   📝 Added favorite: meal ${mealId} for user ${this.testUserId}`);
+    console.log(`    Added favorite: meal ${mealId} for user ${this.testUserId}`);
   }
 
   async testAddDuplicateFavorite() {
@@ -109,7 +109,7 @@ class FavoriteManagerTest {
       throw new Error(`Expected ALREADY_FAVORITED error, got: ${result.error}`);
     }
     
-    console.log('   📝 Duplicate favorite correctly rejected');
+    console.log('    Duplicate favorite correctly rejected');
   }
 
   async testAddNonExistentMeal() {
@@ -124,7 +124,7 @@ class FavoriteManagerTest {
       throw new Error(`Expected MEAL_NOT_FOUND error, got: ${result.error}`);
     }
     
-    console.log('   📝 Non-existent meal correctly rejected');
+    console.log('    Non-existent meal correctly rejected');
   }
 
   async testGetUserFavorites() {
@@ -148,7 +148,7 @@ class FavoriteManagerTest {
       }
     }
     
-    console.log(`   📝 Retrieved ${favorites.length} favorites with complete meal details`);
+    console.log(`    Retrieved ${favorites.length} favorites with complete meal details`);
   }
 
   async testGetUserFavoritesWithSearch() {
@@ -157,7 +157,7 @@ class FavoriteManagerTest {
     });
     
     // Should return favorites that match the search (if any chicken meals exist)
-    console.log(`   📝 Search returned ${favorites.length} favorites matching 'chicken'`);
+    console.log(`    Search returned ${favorites.length} favorites matching 'chicken'`);
   }
 
   async testGetUserFavoritesWithSorting() {
@@ -175,7 +175,7 @@ class FavoriteManagerTest {
       throw new Error('Sort order should not change the number of results');
     }
     
-    console.log(`   📝 Sorting test passed (${favoritesAsc.length} favorites sorted)`);
+    console.log(`    Sorting test passed (${favoritesAsc.length} favorites sorted)`);
   }
 
   async testCheckFavoriteStatus() {
@@ -194,7 +194,7 @@ class FavoriteManagerTest {
       throw new Error('Should return false for non-favorited meal');
     }
     
-    console.log('   📝 Favorite status check working correctly');
+    console.log('    Favorite status check working correctly');
   }
 
   async testRemoveFavorite() {
@@ -211,7 +211,7 @@ class FavoriteManagerTest {
       throw new Error('Favorite was not actually removed');
     }
     
-    console.log(`   📝 Removed favorite: meal ${mealId}`);
+    console.log(`    Removed favorite: meal ${mealId}`);
   }
 
   async testRemoveNonExistentFavorite() {
@@ -226,7 +226,7 @@ class FavoriteManagerTest {
       throw new Error(`Expected FAVORITE_NOT_FOUND error, got: ${result.error}`);
     }
     
-    console.log('   📝 Non-existent favorite removal correctly handled');
+    console.log('    Non-existent favorite removal correctly handled');
   }
 
   async testGetFavoriteStats() {
@@ -243,7 +243,7 @@ class FavoriteManagerTest {
       throw new Error('total_favorites should be a number');
     }
     
-    console.log(`   📝 Stats: ${stats.total_favorites} favorites, ${stats.unique_categories} categories`);
+    console.log(`    Stats: ${stats.total_favorites} favorites, ${stats.unique_categories} categories`);
   }
 
   async testGetFavoritesCount() {
@@ -259,7 +259,7 @@ class FavoriteManagerTest {
       throw new Error(`Count mismatch: got ${count}, expected ${favorites.length}`);
     }
     
-    console.log(`   📝 Favorites count: ${count}`);
+    console.log(`    Favorites count: ${count}`);
   }
 
   async testGetPopularFavorites() {
@@ -281,11 +281,11 @@ class FavoriteManagerTest {
       }
     }
     
-    console.log(`   📝 Popular favorites: ${popular.length} meals`);
+    console.log(`    Popular favorites: ${popular.length} meals`);
   }
 
   async runAllTests() {
-    console.log('🚀 Starting FavoriteManager comprehensive test suite...\n');
+    console.log(' Starting FavoriteManager comprehensive test suite...\n');
     
     try {
       await this.setupTestData();
@@ -307,7 +307,7 @@ class FavoriteManagerTest {
       await this.cleanupTestData();
       
     } catch (error) {
-      console.error('💥 Test setup/cleanup failed:', error.message);
+      console.error(' Test setup/cleanup failed:', error.message);
       this.testResults.push({ name: 'Test Setup/Cleanup', status: 'FAILED', error: error.message });
     } finally {
       await this.pool.end();
@@ -319,19 +319,19 @@ class FavoriteManagerTest {
 
   printTestSummary() {
     console.log('\n' + '='.repeat(60));
-    console.log('📊 TEST SUMMARY');
+    console.log(' TEST SUMMARY');
     console.log('='.repeat(60));
     
     const passed = this.testResults.filter(r => r.status === 'PASSED').length;
     const failed = this.testResults.filter(r => r.status === 'FAILED').length;
     
     console.log(`Total tests: ${this.testResults.length}`);
-    console.log(`✅ Passed: ${passed}`);
-    console.log(`❌ Failed: ${failed}`);
+    console.log(` Passed: ${passed}`);
+    console.log(` Failed: ${failed}`);
     console.log(`Success rate: ${((passed / this.testResults.length) * 100).toFixed(1)}%`);
     
     if (failed > 0) {
-      console.log('\n❌ Failed tests:');
+      console.log('\n Failed tests:');
       this.testResults
         .filter(r => r.status === 'FAILED')
         .forEach(r => console.log(`   - ${r.name}: ${r.error}`));
@@ -340,10 +340,10 @@ class FavoriteManagerTest {
     console.log('\n' + '='.repeat(60));
     
     if (failed === 0) {
-      console.log('🎉 All tests passed! FavoriteManager is working correctly.');
+      console.log(' All tests passed! FavoriteManager is working correctly.');
       process.exit(0);
     } else {
-      console.log('💥 Some tests failed. Please review the errors above.');
+      console.log(' Some tests failed. Please review the errors above.');
       process.exit(1);
     }
   }
@@ -353,7 +353,7 @@ class FavoriteManagerTest {
 if (require.main === module) {
   const testSuite = new FavoriteManagerTest();
   testSuite.runAllTests().catch(error => {
-    console.error('💥 Test execution failed:', error);
+    console.error(' Test execution failed:', error);
     process.exit(1);
   });
 }

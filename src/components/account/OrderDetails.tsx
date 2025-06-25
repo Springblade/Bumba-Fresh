@@ -16,8 +16,8 @@ export const OrderDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Log component mounting and orderId
-  console.log('🔄 OrderDetails component mounted with orderId:', orderId);
-  console.log('🔑 Auth status from context:', { 
+  console.log(' OrderDetails component mounted with orderId:', orderId);
+  console.log(' Auth status from context:', { 
     isAuthenticated, 
     user: user?.email, 
     authLoading 
@@ -27,17 +27,17 @@ export const OrderDetails: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        console.log('🔄 OrderDetails useEffect called with orderId:', orderId);
+        console.log(' OrderDetails useEffect called with orderId:', orderId);
         
         // Wait for authentication to complete
         if (authLoading) {
-          console.log('⏳ Waiting for authentication to complete...');
+          console.log(' Waiting for authentication to complete...');
           return;
         }
         
         // Check authentication status
         if (!isAuthenticated) {
-          console.error('❌ User is not authenticated');
+          console.error(' User is not authenticated');
           setError('Please log in to view order details');
           setIsLoading(false);
           return;
@@ -45,7 +45,7 @@ export const OrderDetails: React.FC = () => {
         
         // Validate orderId parameter
         if (!orderId || orderId.trim() === '') {
-          console.error('❌ OrderId is empty or null:', orderId);
+          console.error(' OrderId is empty or null:', orderId);
           setError('Invalid order ID');
           setIsLoading(false);
           return;
@@ -53,7 +53,7 @@ export const OrderDetails: React.FC = () => {
         
         // Check if orderId has the BUMBA- prefix
         if (!orderId.startsWith('BUMBA-')) {
-          console.error('❌ OrderId does not start with BUMBA-:', orderId);
+          console.error(' OrderId does not start with BUMBA-:', orderId);
           setError('Invalid order ID format');
           setIsLoading(false);
           return;
@@ -64,15 +64,15 @@ export const OrderDetails: React.FC = () => {
         
         // Validate that we got a valid number
         if (isNaN(numericOrderId) || numericOrderId <= 0) {
-          console.error('❌ Invalid order ID format:', orderId, 'parsed to:', numericOrderId);
+          console.error(' Invalid order ID format:', orderId, 'parsed to:', numericOrderId);
           setError('Invalid order ID format');
           setIsLoading(false);
           return;
         }
-          console.log('🔄 Fetching order details for ID:', numericOrderId);        try {
-          console.log('📡 Calling getUserOrderById with ID:', numericOrderId);
+          console.log(' Fetching order details for ID:', numericOrderId);        try {
+          console.log(' Calling getUserOrderById with ID:', numericOrderId);
           const orderData = await getUserOrderById(numericOrderId);
-          console.log('✅ Order data received:', orderData);
+          console.log(' Order data received:', orderData);
           
           // Validate order data structure
           if (!orderData || typeof orderData !== 'object') {
@@ -85,8 +85,8 @@ export const OrderDetails: React.FC = () => {
           
           setOrder(orderData);
         } catch (orderError) {
-          console.error('❌ Error fetching order:', orderError);
-          console.error('❌ Error details:', {
+          console.error(' Error fetching order:', orderError);
+          console.error(' Error details:', {
             message: orderError instanceof Error ? orderError.message : 'Unknown error',
             stack: orderError instanceof Error ? orderError.stack : 'No stack trace',
             name: orderError instanceof Error ? orderError.name : 'Unknown error type'
@@ -94,31 +94,31 @@ export const OrderDetails: React.FC = () => {
           throw new Error(`Failed to fetch order: ${orderError instanceof Error ? orderError.message : 'Unknown error'}`);
         }
           try {
-          console.log('🍽️ Calling getOrderItems with ID:', numericOrderId);
+          console.log(' Calling getOrderItems with ID:', numericOrderId);
           const itemsData = await getOrderItems(numericOrderId);
-          console.log('✅ Order items received:', itemsData);
+          console.log(' Order items received:', itemsData);
           setOrderItems(itemsData);
         } catch (itemsError) {
-          console.error('❌ Error fetching order items:', itemsError);
+          console.error(' Error fetching order items:', itemsError);
           // Don't fail if items fetch fails, just show empty items
-          console.warn('⚠️ Continuing without items data');
+          console.warn(' Continuing without items data');
           setOrderItems([]);
         }
 
         try {
-          console.log('🚚 Calling getOrderDelivery with ID:', numericOrderId);
+          console.log(' Calling getOrderDelivery with ID:', numericOrderId);
           const deliveryData = await getOrderDelivery(numericOrderId);
-          console.log('✅ Order delivery received:', deliveryData);
+          console.log(' Order delivery received:', deliveryData);
           setOrderDelivery(deliveryData);
         } catch (deliveryError) {
-          console.error('❌ Error fetching order delivery:', deliveryError);
+          console.error(' Error fetching order delivery:', deliveryError);
           // Don't fail if delivery fetch fails, just show fallback info
-          console.warn('⚠️ Continuing without delivery data');
+          console.warn(' Continuing without delivery data');
           setOrderDelivery(null);
         }
         
       } catch (err) {
-        console.error('❌ Error fetching order details:', err);
+        console.error(' Error fetching order details:', err);
         setError(`Failed to load order details: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setIsLoading(false);
@@ -270,7 +270,7 @@ export const OrderDetails: React.FC = () => {
       </div>
     );
   } catch (err) {
-    console.error('❌ Error rendering OrderDetails:', err);
+    console.error(' Error rendering OrderDetails:', err);
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">Error loading order details</div>

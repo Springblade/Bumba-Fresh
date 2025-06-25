@@ -62,23 +62,23 @@ export interface CompleteOrderResponse {
  */
 export async function getUserOrders(): Promise<any> {
   try {
-    console.log('🔄 getUserOrders called');
+    console.log(' getUserOrders called');
     
     // Try the correct endpoint first
     try {
       const response = await fetchData<any>('/orders');
-      console.log('✅ getUserOrders response from /orders:', response);
+      console.log(' getUserOrders response from /orders:', response);
       return response;
     } catch (error) {
-      console.warn('⚠️ Error fetching from /orders, trying /orders/user:', error);
+      console.warn(' Error fetching from /orders, trying /orders/user:', error);
       
       // Try alternative endpoint
       const response = await fetchData<any>('/orders/user');
-      console.log('✅ getUserOrders response from /orders/user:', response);
+      console.log(' getUserOrders response from /orders/user:', response);
       return response;
     }
   } catch (error) {
-    console.error('❌ Error in getUserOrders:', error);
+    console.error(' Error in getUserOrders:', error);
     throw error;
   }
 }
@@ -88,12 +88,12 @@ export async function getUserOrders(): Promise<any> {
  */
 export async function getUserOrderById(orderId: number): Promise<Order> {
   try {
-    console.log('🔄 getUserOrderById called with orderId:', orderId);
+    console.log(' getUserOrderById called with orderId:', orderId);
     const response = await fetchData<{ message: string; order: Order }>(`/orders/${orderId}`);
-    console.log('✅ getUserOrderById response:', response);
+    console.log(' getUserOrderById response:', response);
     return response.order;
   } catch (error) {
-    console.error('❌ Error in getUserOrderById:', error);
+    console.error(' Error in getUserOrderById:', error);
     throw error;
   }
 }
@@ -103,12 +103,12 @@ export async function getUserOrderById(orderId: number): Promise<Order> {
  */
 export async function getOrderItems(orderId: number): Promise<OrderItem[]> {
   try {
-    console.log('🍽️ getOrderItems called with orderId:', orderId);
+    console.log(' getOrderItems called with orderId:', orderId);
     const response = await fetchData<{ message: string; meals: OrderItem[] }>(`/orders/${orderId}/meals`);
-    console.log('✅ getOrderItems response:', response);
+    console.log(' getOrderItems response:', response);
     return response.meals || [];
   } catch (error) {
-    console.error('❌ Error in getOrderItems:', error);
+    console.error(' Error in getOrderItems:', error);
     throw error;
   }
 }
@@ -160,7 +160,7 @@ export async function getOrderDelivery(orderId: number): Promise<{
   city: string;
 }> {
   try {
-    console.log('🚚 getOrderDelivery called with orderId:', orderId);
+    console.log(' getOrderDelivery called with orderId:', orderId);
     const response = await fetchData<{ 
       message: string; 
       delivery: {
@@ -175,10 +175,10 @@ export async function getOrderDelivery(orderId: number): Promise<{
         city: string;
       } 
     }>(`/orders/${orderId}/delivery`);
-    console.log('✅ getOrderDelivery response:', response);
+    console.log(' getOrderDelivery response:', response);
     return response.delivery;
   } catch (error) {
-    console.error('❌ Error in getOrderDelivery:', error);
+    console.error(' Error in getOrderDelivery:', error);
     throw error;
   }
 }

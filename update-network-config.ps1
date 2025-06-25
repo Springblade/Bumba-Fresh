@@ -97,7 +97,7 @@ function Update-ConfigurationFiles {
                 if ($content[$i] -match "VITE_API_URL=http://(\d+\.\d+\.\d+\.\d+):8000/api") {
                     $oldIP = $matches[1]
                     $content[$i] = "VITE_API_URL=http://${NewIP}:8000/api"
-                    Write-Host "✓ Updated .env: $oldIP → $NewIP" -ForegroundColor Green
+                    Write-Host " Updated .env: $oldIP → $NewIP" -ForegroundColor Green
                     $updated = $true
                 }
             }
@@ -122,7 +122,7 @@ function Update-ConfigurationFiles {
                 if ($content[$i] -match "FRONTEND_URL=http://(\d+\.\d+\.\d+\.\d+):5173") {
                     $oldIP = $matches[1]
                     $content[$i] = "FRONTEND_URL=http://${NewIP}:5173"
-                    Write-Host "✓ Updated backend\.env: $oldIP → $NewIP" -ForegroundColor Green
+                    Write-Host " Updated backend\.env: $oldIP → $NewIP" -ForegroundColor Green
                     $updated = $true
                 }
             }
@@ -149,7 +149,7 @@ function Update-ConfigurationFiles {
             
             if ($content -ne $originalContent) {
                 $content | Set-Content "backend\src\index.js"
-                Write-Host "✓ Updated backend\src\index.js CORS configuration" -ForegroundColor Green
+                Write-Host " Updated backend\src\index.js CORS configuration" -ForegroundColor Green
                 $filesUpdated++
             }
         }
@@ -171,7 +171,7 @@ function Update-ConfigurationFiles {
     
     if ($filesUpdated -gt 0) {
         Write-Host ""
-        Write-Host "✅ Configuration updated successfully!" -ForegroundColor Green
+        Write-Host " Configuration updated successfully!" -ForegroundColor Green
         Write-Host "You can now start your servers with the new IP configuration." -ForegroundColor Cyan
         Write-Host ""
         Write-Host "Next steps:" -ForegroundColor Yellow

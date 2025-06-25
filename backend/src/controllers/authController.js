@@ -14,7 +14,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const register = async (req, res) => {
   try {
     // Log the incoming request for debugging
-    console.log('🔍 Registration request received:', {
+    console.log(' Registration request received:', {
       body: req.body,
       headers: req.headers['content-type']
     });
@@ -22,7 +22,7 @@ const register = async (req, res) => {
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('❌ Validation errors:', errors.array());
+      console.log(' Validation errors:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()

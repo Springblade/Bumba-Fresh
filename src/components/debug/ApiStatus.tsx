@@ -18,7 +18,7 @@ export const ApiStatus: React.FC<ApiStatusProps> = ({ onRetry }) => {
     setApiUrl(baseUrl);
     
     try {
-      console.log('🔍 Checking API status at:', baseUrl);
+      console.log(' Checking API status at:', baseUrl);
       
       // Try to reach the API health endpoint
       const response = await fetch(`${baseUrl}/health`, {
@@ -30,12 +30,12 @@ export const ApiStatus: React.FC<ApiStatusProps> = ({ onRetry }) => {
       
       if (response.ok) {
         setStatus('success');
-        console.log('✅ API is reachable');
+        console.log(' API is reachable');
       } else {
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('❌ API check failed:', error);
+      console.error(' API check failed:', error);
       setStatus('error');
       
       if (error instanceof Error) {

@@ -49,12 +49,12 @@ export const createSubscription = async (data: CreateSubscriptionRequest): Promi
  */
 export const getUserSubscription = async (): Promise<UserSubscriptionResponse> => {
   try {
-    console.log('🔄 getUserSubscription called');
+    console.log(' getUserSubscription called');
     const response = await fetchData<UserSubscriptionResponse>('/subscriptions');
-    console.log('✅ getUserSubscription response:', response);
+    console.log(' getUserSubscription response:', response);
     return response;
   } catch (error) {
-    console.error('❌ Error in getUserSubscription:', error);
+    console.error(' Error in getUserSubscription:', error);
     throw error;
   }
 };
@@ -66,14 +66,14 @@ export const getUserSubscription = async (): Promise<UserSubscriptionResponse> =
  */
 export const cancelSubscription = async (subscriptionId: number): Promise<{ message: string; cancelledSubscription: any }> => {
   try {
-    console.log('🚫 cancelSubscription called with ID:', subscriptionId);
+    console.log(' cancelSubscription called with ID:', subscriptionId);
     const response = await fetchData<{ message: string; cancelledSubscription: any }>(`/subscriptions/${subscriptionId}`, {
       method: 'DELETE'
     });
-    console.log('✅ cancelSubscription response:', response);
+    console.log(' cancelSubscription response:', response);
     return response;
   } catch (error) {
-    console.error('❌ Error in cancelSubscription:', error);
+    console.error(' Error in cancelSubscription:', error);
     throw error;
   }
 };
@@ -85,14 +85,14 @@ export const cancelSubscription = async (subscriptionId: number): Promise<{ mess
  */
 export const pauseSubscription = async (subscriptionId: number): Promise<{ message: string; subscription: any }> => {
   try {
-    console.log('⏸️ pauseSubscription called with ID:', subscriptionId);
+    console.log(' pauseSubscription called with ID:', subscriptionId);
     const response = await fetchData<{ message: string; subscription: any }>(`/subscriptions/${subscriptionId}/pause`, {
       method: 'PUT'
     });
-    console.log('✅ pauseSubscription response:', response);
+    console.log(' pauseSubscription response:', response);
     return response;
   } catch (error) {
-    console.error('❌ Error in pauseSubscription:', error);
+    console.error(' Error in pauseSubscription:', error);
     throw error;
   }
 };
@@ -104,14 +104,14 @@ export const pauseSubscription = async (subscriptionId: number): Promise<{ messa
  */
 export const resumeSubscription = async (subscriptionId: number): Promise<{ message: string; subscription: any }> => {
   try {
-    console.log('▶️ resumeSubscription called with ID:', subscriptionId);
+    console.log('▶ resumeSubscription called with ID:', subscriptionId);
     const response = await fetchData<{ message: string; subscription: any }>(`/subscriptions/${subscriptionId}/resume`, {
       method: 'PUT'
     });
-    console.log('✅ resumeSubscription response:', response);
+    console.log(' resumeSubscription response:', response);
     return response;
   } catch (error) {
-    console.error('❌ Error in resumeSubscription:', error);
+    console.error(' Error in resumeSubscription:', error);
     throw error;
   }
 };

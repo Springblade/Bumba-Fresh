@@ -4,7 +4,7 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
   const token = localStorage.getItem('authToken');
   const url = `${API_URL}${endpoint}`;
   
-  console.log('🌐 API Request:', { 
+  console.log(' API Request:', { 
     url, 
     endpoint, 
     hasToken: !!token,
@@ -24,7 +24,7 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
     ...options
   });
   
-  console.log('📡 API Response:', { 
+  console.log(' API Response:', { 
     status: response.status, 
     statusText: response.statusText,
     ok: response.ok,
@@ -32,7 +32,7 @@ export async function fetchData<T>(endpoint: string, options?: RequestInit): Pro
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    console.error('❌ API Error Response:', error);
+    console.error(' API Error Response:', error);
     
     // Handle specific error cases
     if (response.status === 401) {

@@ -17,10 +17,10 @@ const AdminDashboard: React.FC = () => {
   const { stats } = useAdminData();
   
   // Debug logging to see what we're getting from the API
-  console.log('🎯 AdminDashboard - stats object:', stats);
-  console.log('🎯 AdminDashboard - stats.data:', stats.data);
-  console.log('🎯 AdminDashboard - stats.isLoading:', stats.isLoading);
-  console.log('🎯 AdminDashboard - stats.error:', stats.error);
+  console.log(' AdminDashboard - stats object:', stats);
+  console.log(' AdminDashboard - stats.data:', stats.data);
+  console.log(' AdminDashboard - stats.isLoading:', stats.isLoading);
+  console.log(' AdminDashboard - stats.error:', stats.error);
   
   /* 
    * CHANGE: Updated to use real API data instead of hardcoded values

@@ -28,12 +28,12 @@ export interface ApiMealResponse {
 
 export async function getAllMeals(): Promise<Meal[]> {
   try {
-    console.log('🍽️ getAllMeals: Starting API call...');
+    console.log(' getAllMeals: Starting API call...');
     const response = await fetchData<ApiMealsResponse>('/meals');
-    console.log('🍽️ getAllMeals: API response received:', response);
+    console.log(' getAllMeals: API response received:', response);
     return response.data;
   } catch (error) {
-    console.error('🍽️ getAllMeals: Error occurred:', error);
+    console.error(' getAllMeals: Error occurred:', error);
     return [];
   }
 }

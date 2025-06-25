@@ -25,9 +25,9 @@ class FavoritesAPITest {  constructor() {
   }
   async runTest(testName, testFunction, needsCleanup = false) {
     try {
-      console.log(`\n🧪 Running API test: ${testName}`);
+      console.log(`\n Running API test: ${testName}`);
       await testFunction();
-      console.log(`✅ ${testName} - PASSED`);
+      console.log(` ${testName} - PASSED`);
       this.testResults.push({ name: testName, status: 'PASSED' });
       
       // Clean up test data if needed
@@ -35,7 +35,7 @@ class FavoritesAPITest {  constructor() {
         await this.cleanupTestData();
       }
     } catch (error) {
-      console.error(`❌ ${testName} - FAILED: ${error.message}`);
+      console.error(` ${testName} - FAILED: ${error.message}`);
       this.testResults.push({ name: testName, status: 'FAILED', error: error.message });
       
       // Clean up even on failure to prevent affecting other tests
@@ -43,14 +43,14 @@ class FavoritesAPITest {  constructor() {
         try {
           await this.cleanupTestData();
         } catch (cleanupError) {
-          console.warn(`⚠️ Cleanup failed for ${testName}: ${cleanupError.message}`);
+          console.warn(` Cleanup failed for ${testName}: ${cleanupError.message}`);
         }
       }
     }
   }
 
   async setupTestAuth() {
-    console.log('🔐 Setting up authentication...');
+    console.log(' Setting up authentication...');
       // Try to login with test credentials
     try {
       const loginResponse = await axios.post(`${this.apiURL}/auth/login`, {
@@ -59,11 +59,11 @@ class FavoritesAPITest {  constructor() {
       });
       
       this.authToken = loginResponse.data.token;
-      console.log('✅ Authentication successful');
+      console.log(' Authentication successful');
       
     } catch (error) {
       // If login fails, try to register first
-      console.log('🔄 Login failed, attempting registration...');
+      console.log(' Login failed, attempting registration...');
         try {
         await axios.post(`${this.apiURL}/auth/register`, {
           email: 'testing1.favorites@example.com',
@@ -72,14 +72,14 @@ class FavoritesAPITest {  constructor() {
           lastName: 'User'
         });
         
-        console.log('✅ Registration successful, attempting login...');
+        console.log(' Registration successful, attempting login...');
           const loginResponse = await axios.post(`${this.apiURL}/auth/login`, {
           email: 'testing1.favorites@example.com',
           password: 'Password123'
         });
         
         this.authToken = loginResponse.data.token;
-        console.log('✅ Authentication successful after registration');
+        console.log(' Authentication successful after registration');
         
       } catch (regError) {
         throw new Error(`Authentication setup failed: ${regError.response?.data?.message || regError.message}`);
@@ -88,7 +88,7 @@ class FavoritesAPITest {  constructor() {
   }
 
   async setupTestMeal() {
-    console.log('🍽️ Getting test meal...');
+    console.log(' Getting test meal...');
     
     const response = await axios.get(`${this.apiURL}/meals`);
     
@@ -97,7 +97,7 @@ class FavoritesAPITest {  constructor() {
     }
     
     this.testMealId = response.data.data[0].meal_id;
-    console.log(`✅ Test meal ID: ${this.testMealId}`);
+    console.log(` Test meal ID: ${this.testMealId}`);
   }
   getAuthHeaders() {
     return {
@@ -129,10 +129,10 @@ class FavoritesAPITest {  constructor() {
         `;
         
         const result = await this.dbPool.query(deleteQuery, [userId]);
-        console.log(`   🧹 Cleaned up ${result.rowCount} favorite records for test user`);
+        console.log(`    Cleaned up ${result.rowCount} favorite records for test user`);
       }
     } catch (error) {
-      console.warn(`   ⚠️ Cleanup warning: ${error.message}`);
+      console.warn(`    Cleanup warning: ${error.message}`);
       // Don't throw error for cleanup failures to avoid breaking test flow
     }
   }
@@ -156,7 +156,7 @@ class FavoritesAPITest {  constructor() {
       throw new Error('Response should include favorite data');
     }
     
-    console.log(`   📝 Added favorite with ID: ${response.data.data.favorite_id}`);
+    console.log(`    Added favorite with ID: ${response.data.data.favorite_id}`);
   }
 
   async testAddDuplicateFavorite() {
@@ -177,7 +177,7 @@ class FavoritesAPITest {  constructor() {
         throw new Error(`Expected ALREADY_FAVORITED error code, got ${error.response.data.error_code}`);
       }
       
-      console.log('   📝 Duplicate favorite correctly rejected');
+      console.log('    Duplicate favorite correctly rejected');
     }
   }
 
@@ -195,7 +195,7 @@ class FavoritesAPITest {  constructor() {
         throw new Error(`Expected status 400, got ${error.response?.status}`);
       }
       
-      console.log('   📝 Invalid meal ID correctly rejected');
+      console.log('    Invalid meal ID correctly rejected');
     }
   }
 
@@ -230,7 +230,7 @@ class FavoritesAPITest {  constructor() {
       }
     }
     
-    console.log(`   📝 Retrieved ${response.data.data.length} favorites`);
+    console.log(`    Retrieved ${response.data.data.length} favorites`);
   }
 
   async testGetFavoritesWithSearch() {
@@ -243,7 +243,7 @@ class FavoritesAPITest {  constructor() {
       throw new Error(`Expected status 200, got ${response.status}`);
     }
     
-    console.log(`   📝 Search returned ${response.data.data.length} favorites`);
+    console.log(`    Search returned ${response.data.data.length} favorites`);
   }
 
   async testCheckFavorite() {
@@ -264,7 +264,7 @@ class FavoritesAPITest {  constructor() {
       throw new Error('Should return true for favorited meal');
     }
     
-    console.log('   📝 Favorite check returned correct status');
+    console.log('    Favorite check returned correct status');
   }
 
   async testGetFavoriteStats() {
@@ -289,7 +289,7 @@ class FavoritesAPITest {  constructor() {
       }
     }
     
-    console.log(`   📝 Stats: ${response.data.data.total_favorites} favorites`);
+    console.log(`    Stats: ${response.data.data.total_favorites} favorites`);
   }
 
   async testGetPopularFavorites() {
@@ -310,7 +310,7 @@ class FavoritesAPITest {  constructor() {
       throw new Error('Response data should be an array');
     }
     
-    console.log(`   📝 Popular favorites: ${response.data.data.length} meals`);
+    console.log(`    Popular favorites: ${response.data.data.length} meals`);
   }
 
   async testRemoveFavorite() {
@@ -337,7 +337,7 @@ class FavoritesAPITest {  constructor() {
       throw new Error('Favorite should be removed');
     }
     
-    console.log('   📝 Favorite successfully removed');
+    console.log('    Favorite successfully removed');
   }
 
   async testRemoveNonExistentFavorite() {
@@ -353,7 +353,7 @@ class FavoritesAPITest {  constructor() {
         throw new Error(`Expected status 404, got ${error.response?.status}`);
       }
       
-      console.log('   📝 Non-existent favorite removal correctly handled');
+      console.log('    Non-existent favorite removal correctly handled');
     }
   }
 
@@ -366,11 +366,11 @@ class FavoritesAPITest {  constructor() {
         throw new Error(`Expected status 401, got ${error.response?.status}`);
       }
       
-      console.log('   📝 Unauthorized access correctly blocked');
+      console.log('    Unauthorized access correctly blocked');
     }
   }
   async runAllTests() {
-    console.log('🚀 Starting Favorites API test suite...\n');
+    console.log(' Starting Favorites API test suite...\n');
     
     try {
       await this.setupTestAuth();
@@ -378,7 +378,7 @@ class FavoritesAPITest {  constructor() {
       
       // Initial cleanup to start with clean state
       await this.cleanupTestData();
-      console.log('🧹 Initial test data cleanup completed');
+      console.log(' Initial test data cleanup completed');
       
       // Authentication tests
       await this.runTest('Unauthorized Access', () => this.testUnauthorizedAccess());
@@ -396,10 +396,10 @@ class FavoritesAPITest {  constructor() {
       
       // Final cleanup
       await this.cleanupTestData();
-      console.log('🧹 Final test data cleanup completed');
+      console.log(' Final test data cleanup completed');
       
     } catch (error) {
-      console.error('💥 Test setup failed:', error.message);
+      console.error(' Test setup failed:', error.message);
       this.testResults.push({ name: 'Test Setup', status: 'FAILED', error: error.message });
     } finally {
       // Ensure database connection is closed
@@ -412,19 +412,19 @@ class FavoritesAPITest {  constructor() {
 
   printTestSummary() {
     console.log('\n' + '='.repeat(60));
-    console.log('📊 API TEST SUMMARY');
+    console.log(' API TEST SUMMARY');
     console.log('='.repeat(60));
     
     const passed = this.testResults.filter(r => r.status === 'PASSED').length;
     const failed = this.testResults.filter(r => r.status === 'FAILED').length;
     
     console.log(`Total tests: ${this.testResults.length}`);
-    console.log(`✅ Passed: ${passed}`);
-    console.log(`❌ Failed: ${failed}`);
+    console.log(` Passed: ${passed}`);
+    console.log(` Failed: ${failed}`);
     console.log(`Success rate: ${((passed / this.testResults.length) * 100).toFixed(1)}%`);
     
     if (failed > 0) {
-      console.log('\n❌ Failed tests:');
+      console.log('\n Failed tests:');
       this.testResults
         .filter(r => r.status === 'FAILED')
         .forEach(r => console.log(`   - ${r.name}: ${r.error}`));
@@ -433,10 +433,10 @@ class FavoritesAPITest {  constructor() {
     console.log('\n' + '='.repeat(60));
     
     if (failed === 0) {
-      console.log('🎉 All API tests passed! Favorites endpoints are working correctly.');
+      console.log(' All API tests passed! Favorites endpoints are working correctly.');
       process.exit(0);
     } else {
-      console.log('💥 Some API tests failed. Please review the errors above.');
+      console.log(' Some API tests failed. Please review the errors above.');
       process.exit(1);
     }
   }
@@ -446,7 +446,7 @@ class FavoritesAPITest {  constructor() {
 if (require.main === module) {
   const testSuite = new FavoritesAPITest();
   testSuite.runAllTests().catch(error => {
-    console.error('💥 API test execution failed:', error);
+    console.error(' API test execution failed:', error);
     process.exit(1);
   });
 }

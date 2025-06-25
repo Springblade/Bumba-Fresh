@@ -63,9 +63,9 @@ export const OrderHistory = () => {
         setIsLoading(true);
         setError(null);
         
-        console.log('🔄 Fetching user orders...');
+        console.log(' Fetching user orders...');
         const response = await getUserOrders();
-        console.log('📦 Received response:', response);
+        console.log(' Received response:', response);
         
         // Handle different response formats
         let apiOrders = [];
@@ -79,7 +79,7 @@ export const OrderHistory = () => {
             apiOrders = response.data;
           } else if (response.message && response.message.includes('No orders found')) {
             // Handle case where user has no orders
-            console.log('ℹ️ No orders found for user');
+            console.log('ℹ No orders found for user');
             setOrders([]);
             setIsLoading(false);
             return;
@@ -88,7 +88,7 @@ export const OrderHistory = () => {
         
         // If we still don't have an array, log the issue but don't throw an error
         if (!Array.isArray(apiOrders)) {
-          console.error('❌ Could not extract orders array from response:', response);
+          console.error(' Could not extract orders array from response:', response);
           apiOrders = []; // Set to empty array instead of throwing
         }
         
@@ -99,7 +99,7 @@ export const OrderHistory = () => {
           try {
             // Skip if not an object
             if (!apiOrder || typeof apiOrder !== 'object') {
-              console.warn('⚠️ Skipping invalid order object:', apiOrder);
+              console.warn(' Skipping invalid order object:', apiOrder);
               continue;
             }
             
@@ -118,7 +118,7 @@ export const OrderHistory = () => {
             // Extract status with fallbacks and validation
             let status = (apiOrder.status || 'pending').toLowerCase();
             if (!Object.keys(statusStyles).includes(status)) {
-              console.warn(`⚠️ Unknown status "${status}", defaulting to "pending"`);
+              console.warn(` Unknown status "${status}", defaulting to "pending"`);
               status = 'pending';
             }
             
@@ -137,14 +137,14 @@ export const OrderHistory = () => {
             });
           } catch (err) {
             // Log but continue processing other orders
-            console.warn('⚠️ Error transforming order:', err);
+            console.warn(' Error transforming order:', err);
           }
         }
         
-        console.log('✅ Transformed orders:', transformedOrders);
+        console.log(' Transformed orders:', transformedOrders);
         setOrders(transformedOrders);
       } catch (err) {
-        console.error('❌ Error fetching orders:', err);
+        console.error(' Error fetching orders:', err);
         
         // Don't throw the error - just set error state
         // Check if it's an authentication error

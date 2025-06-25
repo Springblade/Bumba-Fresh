@@ -132,9 +132,9 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Bumba Fresh API server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(` Bumba Fresh API server running on port ${PORT}`);
+  console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(` CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
 });
 
 // Graceful shutdown

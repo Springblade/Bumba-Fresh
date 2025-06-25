@@ -34,14 +34,14 @@ const OurMeals = () => {
       try {
         setIsLoadingMeals(true);
         setErrorMessage(null);
-        console.log('🔄 Fetching meals from API...');
+        console.log(' Fetching meals from API...');
         
         // Check if we can reach the API first
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-        console.log('🌐 Using API URL:', apiUrl);
+        console.log(' Using API URL:', apiUrl);
         
         const apiMeals = await getAllMeals();
-        console.log('✅ Meals fetched successfully:', apiMeals.length, 'meals');
+        console.log(' Meals fetched successfully:', apiMeals.length, 'meals');
         
         // Transform API data to frontend format
         const transformedMeals: Meal[] = apiMeals.map((apiMeal) => ({
@@ -58,10 +58,10 @@ const OurMeals = () => {
           isNew: false
         }));
         
-        console.log('✅ Meals transformed:', transformedMeals.length, 'meals ready for display');
+        console.log(' Meals transformed:', transformedMeals.length, 'meals ready for display');
         setMeals(transformedMeals);
       } catch (error) {
-        console.error('❌ Error fetching meals:', error);
+        console.error(' Error fetching meals:', error);
         console.error('Error details:', {
           message: error instanceof Error ? error.message : 'Unknown error',
           stack: error instanceof Error ? error.stack : undefined

@@ -1,233 +1,183 @@
-# Bumba Fresh Network Configuration Updater
-# PowerShell script to update IP configuration for development environment
-
 param(
     [string]$TargetIP,
     [switch]$ShowCurrentConfig,
     [switch]$Help
 )
 
-# Function to show help
+# Bumba Fresh Network Configuration Updater
+# PowerShell script to automatically update IP configuration across all files
+
 function Show-Help {
-    Write-Host ""
-    Write-Host "Bumba Fresh Network Configuration Updater" -ForegroundColor Cyan
-    Write-Host "==========================================" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "This script helps update network configuration files for the Bumba Fresh application."
+    Write-Host "Bumba Fresh Network Configuration Updater" -ForegroundColor Green
+    Write-Host "==========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  .\update-network-config.ps1                    # Auto-detect IP"
-    Write-Host "  .\update-network-config.ps1 -TargetIP <IP>     # Use custom IP"
-    Write-Host "  .\update-network-config.ps1 -ShowCurrentConfig # Show current config"
+    Write-Host "  .\update-network-config.ps1                    # Auto-detect IP and update"
+    Write-Host "  .\update-network-config.ps1 -TargetIP <IP>     # Use specific IP"
+    Write-Host "  .\update-network-config.ps1 -ShowCurrentConfig # Show current configuration"
     Write-Host "  .\update-network-config.ps1 -Help              # Show this help"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
     Write-Host "  .\update-network-config.ps1 -TargetIP 192.168.1.100"
     Write-Host "  .\update-network-config.ps1 -ShowCurrentConfig"
-    Write-Host ""
 }
 
-# Function to get local IP address
 function Get-LocalIPAddress {
     try {
-        $ipAddresses = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
-            $_.InterfaceAlias -notlike "*Loopback*" -and
-            $_.InterfaceAlias -notlike "*Bluetooth*" -and
-            $_.IPAddress -ne "127.0.0.1" -and
-            $_.PrefixOrigin -eq "Dhcp" -or $_.PrefixOrigin -eq "Manual"
-        } | Sort-Object InterfaceAlias
+        # Get active network adapters with IPv4 addresses
+        $adapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
         
-        if ($ipAddresses.Count -gt 0) {
-            return $ipAddresses[0].IPAddress
-        }
-        
-        # Fallback method
-        $networkAdapters = Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where-Object {
-            $_.IPEnabled -eq $true -and $_.IPAddress -ne $null
-        }
-        
-        foreach ($adapter in $networkAdapters) {
-            foreach ($ip in $adapter.IPAddress) {
-                if ($ip -match "^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[01])\.") {
-                    return $ip
+        foreach ($adapter in $adapters) {
+            $ipConfig = Get-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
+            if ($ipConfig -and $ipConfig.IPAddress -ne "127.0.0.1") {
+                # Filter out APIPA addresses (169.254.x.x)
+                if (-not $ipConfig.IPAddress.StartsWith("169.254")) {
+                    return $ipConfig.IPAddress
                 }
             }
         }
         
-        return $null
+        Write-Warning "Could not detect a valid IP address. Using localhost as fallback."
+        return "localhost"
     }
     catch {
         Write-Warning "Error detecting IP address: $($_.Exception.Message)"
-        return $null
+        return "localhost"
     }
 }
 
-# Function to show current configuration
 function Show-CurrentConfig {
-    Write-Host ""
     Write-Host "Current Network Configuration:" -ForegroundColor Green
     Write-Host "=============================" -ForegroundColor Green
-    Write-Host ""
     
-    # Show detected IP
-    $currentIP = Get-LocalIPAddress
-    if ($currentIP) {
-        Write-Host "Detected IP Address: $currentIP" -ForegroundColor Yellow
-    } else {
-        Write-Host "Could not detect IP address" -ForegroundColor Red
+    # Check .env file
+    if (Test-Path ".env") {
+        $envContent = Get-Content ".env"
+        $apiUrl = $envContent | Where-Object { $_ -match "VITE_API_URL=" }
+        Write-Host "Frontend (.env): $apiUrl" -ForegroundColor Cyan
     }
     
-    # Show network adapters
-    Write-Host ""
-    Write-Host "Network Adapters:" -ForegroundColor Cyan
-    Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
-        $_.InterfaceAlias -notlike "*Loopback*" -and $_.IPAddress -ne "127.0.0.1"
-    } | ForEach-Object {
-        Write-Host "  $($_.InterfaceAlias): $($_.IPAddress)" -ForegroundColor White
+    # Check backend/.env file
+    if (Test-Path "backend\.env") {
+        $backendEnvContent = Get-Content "backend\.env"
+        $frontendUrl = $backendEnvContent | Where-Object { $_ -match "FRONTEND_URL=" }
+        Write-Host "Backend (backend\.env): $frontendUrl" -ForegroundColor Cyan
     }
     
-    # Check configuration files
-    Write-Host ""
-    Write-Host "Configuration Files:" -ForegroundColor Cyan
-    
-    $configFiles = @(
-        "vite.config.ts",
-        "backend/src/config/database.js",
-        "backend/src/config/server.js",
-        "package.json"
-    )
-    
-    foreach ($file in $configFiles) {
-        if (Test-Path $file) {
-            Write-Host "  ✓ $file exists" -ForegroundColor Green
+    # Check backend/src/index.js for CORS configuration
+    if (Test-Path "backend\src\index.js") {
+        $indexContent = Get-Content "backend\src\index.js" -Raw
+        if ($indexContent -match "192\.168\.\d+\.\d+") {
+            Write-Host "Backend CORS: Contains hardcoded IP addresses" -ForegroundColor Yellow
         } else {
-            Write-Host "  ✗ $file not found" -ForegroundColor Red
+            Write-Host "Backend CORS: No hardcoded IP addresses found" -ForegroundColor Green
         }
     }
     
     Write-Host ""
+    Write-Host "Detected Local IP: $(Get-LocalIPAddress)" -ForegroundColor Magenta
 }
 
-# Function to update configuration files
-function Update-ConfigFiles {
+function Update-ConfigurationFiles {
     param([string]$NewIP)
     
-    $updatedFiles = @()
+    $filesUpdated = 0
+    $errors = @()
     
     Write-Host "Updating configuration files with IP: $NewIP" -ForegroundColor Green
     Write-Host ""
     
-    # Update vite.config.ts
-    if (Test-Path "vite.config.ts") {
-        try {
-            $viteConfig = Get-Content "vite.config.ts" -Raw
-            $originalConfig = $viteConfig
+    # Update .env file
+    try {
+        if (Test-Path ".env") {
+            $content = Get-Content ".env"
+            $updated = $false
             
-            # Update host in server configuration
-            $viteConfig = $viteConfig -replace "host:\s*['\`"][^'\`"]*['\`"]", "host: '$NewIP'"
-            $viteConfig = $viteConfig -replace "host:\s*true", "host: '$NewIP'"
-            
-            if ($viteConfig -ne $originalConfig) {
-                Set-Content "vite.config.ts" $viteConfig
-                $updatedFiles += "vite.config.ts"
-                Write-Host "  ✓ Updated vite.config.ts" -ForegroundColor Green
-            } else {
-                Write-Host "  - vite.config.ts (no changes needed)" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "  ✗ Error updating vite.config.ts: $($_.Exception.Message)" -ForegroundColor Red
-        }
-    }
-    
-    # Update backend configuration if it exists
-    $backendConfigPath = "backend/src/config"
-    if (Test-Path $backendConfigPath) {
-        # Update database.js if it exists
-        $dbConfigPath = "$backendConfigPath/database.js"
-        if (Test-Path $dbConfigPath) {
-            try {
-                $dbConfig = Get-Content $dbConfigPath -Raw
-                $originalConfig = $dbConfig
-                
-                # Update host configuration
-                $dbConfig = $dbConfig -replace "host:\s*['\`"][^'\`"]*['\`"]", "host: '$NewIP'"
-                
-                if ($dbConfig -ne $originalConfig) {
-                    Set-Content $dbConfigPath $dbConfig
-                    $updatedFiles += $dbConfigPath
-                    Write-Host "  ✓ Updated $dbConfigPath" -ForegroundColor Green
-                } else {
-                    Write-Host "  - $dbConfigPath (no changes needed)" -ForegroundColor Yellow
+            for ($i = 0; $i -lt $content.Length; $i++) {
+                if ($content[$i] -match "VITE_API_URL=http://(\d+\.\d+\.\d+\.\d+):8000/api") {
+                    $oldIP = $matches[1]
+                    $content[$i] = "VITE_API_URL=http://${NewIP}:8000/api"
+                    Write-Host "✓ Updated .env: $oldIP → $NewIP" -ForegroundColor Green
+                    $updated = $true
                 }
             }
-            catch {
-                Write-Host "  ✗ Error updating $dbConfigPath: $($_.Exception.Message)" -ForegroundColor Red
-            }
-        }
-        
-        # Update server.js if it exists
-        $serverConfigPath = "$backendConfigPath/server.js"
-        if (Test-Path $serverConfigPath) {
-            try {
-                $serverConfig = Get-Content $serverConfigPath -Raw
-                $originalConfig = $serverConfig
-                
-                # Update host configuration
-                $serverConfig = $serverConfig -replace "host:\s*['\`"][^'\`"]*['\`"]", "host: '$NewIP'"
-                
-                if ($serverConfig -ne $originalConfig) {
-                    Set-Content $serverConfigPath $serverConfig
-                    $updatedFiles += $serverConfigPath
-                    Write-Host "  ✓ Updated $serverConfigPath" -ForegroundColor Green
-                } else {
-                    Write-Host "  - $serverConfigPath (no changes needed)" -ForegroundColor Yellow
-                }
-            }
-            catch {
-                Write-Host "  ✗ Error updating $serverConfigPath: $($_.Exception.Message)" -ForegroundColor Red
+            
+            if ($updated) {
+                $content | Set-Content ".env"
+                $filesUpdated++
             }
         }
     }
+    catch {
+        $errors += "Error updating .env: $($_.Exception.Message)"
+    }
     
-    # Update any environment files
-    $envFiles = @(".env", ".env.local", ".env.development")
-    foreach ($envFile in $envFiles) {
-        if (Test-Path $envFile) {
-            try {
-                $envContent = Get-Content $envFile
-                $originalContent = $envContent
-                
-                # Update various IP-related environment variables
-                $envContent = $envContent -replace "VITE_API_URL=.*", "VITE_API_URL=http://$NewIP:3001"
-                $envContent = $envContent -replace "API_URL=.*", "API_URL=http://$NewIP:3001"
-                $envContent = $envContent -replace "HOST=.*", "HOST=$NewIP"
-                $envContent = $envContent -replace "SERVER_HOST=.*", "SERVER_HOST=$NewIP"
-                
-                if (($envContent | Out-String) -ne ($originalContent | Out-String)) {
-                    Set-Content $envFile $envContent
-                    $updatedFiles += $envFile
-                    Write-Host "  ✓ Updated $envFile" -ForegroundColor Green
-                } else {
-                    Write-Host "  - $envFile (no changes needed)" -ForegroundColor Yellow
+    # Update backend/.env file
+    try {
+        if (Test-Path "backend\.env") {
+            $content = Get-Content "backend\.env"
+            $updated = $false
+            
+            for ($i = 0; $i -lt $content.Length; $i++) {
+                if ($content[$i] -match "FRONTEND_URL=http://(\d+\.\d+\.\d+\.\d+):5173") {
+                    $oldIP = $matches[1]
+                    $content[$i] = "FRONTEND_URL=http://${NewIP}:5173"
+                    Write-Host "✓ Updated backend\.env: $oldIP → $NewIP" -ForegroundColor Green
+                    $updated = $true
                 }
             }
-            catch {
-                Write-Host "  ✗ Error updating $envFile: $($_.Exception.Message)" -ForegroundColor Red
+            
+            if ($updated) {
+                $content | Set-Content "backend\.env"
+                $filesUpdated++
             }
         }
+    }
+    catch {
+        $errors += "Error updating backend\.env: $($_.Exception.Message)"
+    }
+    
+    # Update backend/src/index.js CORS configuration
+    try {
+        if (Test-Path "backend\src\index.js") {
+            $content = Get-Content "backend\src\index.js" -Raw
+            $originalContent = $content
+            
+            # Update CORS origins
+            $content = $content -replace "http://\d+\.\d+\.\d+\.\d+:5173", "http://${NewIP}:5173"
+            $content = $content -replace "http://\d+\.\d+\.\d+\.\d+:8080", "http://${NewIP}:8080"
+            
+            if ($content -ne $originalContent) {
+                $content | Set-Content "backend\src\index.js"
+                Write-Host "✓ Updated backend\src\index.js CORS configuration" -ForegroundColor Green
+                $filesUpdated++
+            }
+        }
+    }
+    catch {
+        $errors += "Error updating backend\src\index.js: $($_.Exception.Message)"
     }
     
     Write-Host ""
-    if ($updatedFiles.Count -gt 0) {
-        Write-Host "Successfully updated $($updatedFiles.Count) file(s):" -ForegroundColor Green
-        foreach ($file in $updatedFiles) {
-            Write-Host "  - $file" -ForegroundColor White
+    Write-Host "Summary:" -ForegroundColor Yellow
+    Write-Host "Files updated: $filesUpdated" -ForegroundColor Green
+    
+    if ($errors.Count -gt 0) {
+        Write-Host "Errors encountered:" -ForegroundColor Red
+        foreach ($error in $errors) {
+            Write-Host "  - $error" -ForegroundColor Red
         }
+    }
+    
+    if ($filesUpdated -gt 0) {
         Write-Host ""
-        Write-Host "Note: You may need to restart your development servers for changes to take effect." -ForegroundColor Yellow
-    } else {
-        Write-Host "No files needed updating." -ForegroundColor Yellow
+        Write-Host "✅ Configuration updated successfully!" -ForegroundColor Green
+        Write-Host "You can now start your servers with the new IP configuration." -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Next steps:" -ForegroundColor Yellow
+        Write-Host "1. Start the backend server: cd backend && npm start"
+        Write-Host "2. Start the frontend server: npm run dev"
+        Write-Host "3. Access the application at: http://${NewIP}:5173"
     }
 }
 
@@ -242,50 +192,18 @@ if ($ShowCurrentConfig) {
     exit 0
 }
 
-Write-Host ""
-Write-Host "Bumba Fresh Network Configuration Updater" -ForegroundColor Cyan
-Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host ""
-
-# Determine target IP
-if ($TargetIP) {
-    # Validate IP format
-    if ($TargetIP -match "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$") {
-        Write-Host "Using provided IP address: $TargetIP" -ForegroundColor Yellow
-        $ipToUse = $TargetIP
-    } else {
-        Write-Host "Error: Invalid IP address format: $TargetIP" -ForegroundColor Red
-        Write-Host "Please provide a valid IP address (e.g., 192.168.1.100)" -ForegroundColor Red
-        exit 1
-    }
-} else {
-    Write-Host "Auto-detecting IP address..." -ForegroundColor Yellow
-    $ipToUse = Get-LocalIPAddress
-    
-    if (-not $ipToUse) {
-        Write-Host "Error: Could not auto-detect IP address." -ForegroundColor Red
-        Write-Host "Please run the script with -TargetIP parameter:" -ForegroundColor Red
-        Write-Host "  .\update-network-config.ps1 -TargetIP 192.168.1.100" -ForegroundColor Yellow
-        exit 1
-    }
-    
-    Write-Host "Detected IP address: $ipToUse" -ForegroundColor Green
+if (-not $TargetIP) {
+    Write-Host "Auto-detecting local IP address..." -ForegroundColor Cyan
+    $TargetIP = Get-LocalIPAddress
+    Write-Host "Detected IP: $TargetIP" -ForegroundColor Green
+    Write-Host ""
 }
 
-Write-Host ""
-
-# Confirm with user (only in interactive mode)
-if ($Host.Name -eq "ConsoleHost") {
-    $confirmation = Read-Host "Update configuration files with IP $ipToUse? (y/N)"
-    if ($confirmation -notmatch "^[Yy]") {
-        Write-Host "Operation cancelled." -ForegroundColor Yellow
-        exit 0
-    }
+# Validate IP address format
+if ($TargetIP -ne "localhost" -and $TargetIP -notmatch "^\d+\.\d+\.\d+\.\d+$") {
+    Write-Host "Error: Invalid IP address format: $TargetIP" -ForegroundColor Red
+    Write-Host "Please provide a valid IPv4 address (e.g., 192.168.1.100)" -ForegroundColor Yellow
+    exit 1
 }
 
-# Update configuration files
-Update-ConfigFiles -NewIP $ipToUse
-
-Write-Host ""
-Write-Host "Network configuration update completed!" -ForegroundColor Green
-Write-Host ""
+Update-ConfigurationFiles -NewIP $TargetIP

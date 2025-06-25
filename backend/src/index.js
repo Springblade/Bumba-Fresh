@@ -111,7 +111,7 @@ app.get('/', (req, res) => {  res.json({
       users: '/api/users',
       delivery: '/api/delivery',
       favorites: '/api/favorites',
-      subscriptions: '/api/subscriptions'
+      subscriptions: '/api/subscriptions',
       admin: '/api/admin'
     }
   });

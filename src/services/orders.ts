@@ -58,14 +58,27 @@ export interface CompleteOrderResponse {
 }
 
 /**
- * Fetch all orders for the authenticated user
+ * Fetch all orders for the current user
  */
-export async function getUserOrders(): Promise<Order[]> {
+export async function getUserOrders(): Promise<any[]> {
   try {
-    const response = await fetchData<{ message: string; orders: Order[] }>('/orders');
-    return response.orders || [];
+    console.log('🔄 getUserOrders called');
+    const response = await fetchData<any>('/orders/user');
+    console.log('✅ getUserOrders response:', response);
+    
+    // Handle different response formats
+    if (response.orders) {
+      return response.orders;
+    } else if (Array.isArray(response)) {
+      return response;
+    } else if (response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    console.error('❌ Unexpected API response structure:', response);
+    return [];
   } catch (error) {
-    console.error('Error fetching user orders:', error);
+    console.error('❌ Error in getUserOrders:', error);
     throw error;
   }
 }

@@ -103,16 +103,18 @@ const PaymentPage = () => {
     setFormError(null);
     setIsProcessing(true);
     
+    if (!shippingAddress) {
+      setFormError('Shipping address is required');
+      setIsProcessing(false);
+      return;
+    }
+    
     try {
-      if (!shippingAddress) {
-        setFormError('Shipping address is required');
-        return;
-      }
-      
       // Check if cart has items (either meals or subscriptions)
       const hasItems = items.length > 0;
       if (!hasItems) {
         setFormError('Your cart is empty');
+        setIsProcessing(false);
         return;
       }
       
@@ -177,16 +179,96 @@ const PaymentPage = () => {
       // Process meal orders if present
       const mealItems = items.filter(item => item.type === 'meal');
       if (mealItems.length > 0) {
-        // Process meal orders
-        // Existing code for meal orders...
+        // Calculate order totals before clearing cart
+        const subtotal = items.reduce((sum, item) => {
+          if (item.type === 'meal') {
+            return sum + parseFloat(item.price.replace('$', '')) * item.quantity;
+          }
+          return sum + item.totalCost;
+        }, 0);
+        const shipping = 0; // Free shipping
+        const tax = subtotal * 0.08; // 8% tax
+        const total = subtotal + shipping + tax;
+        
+        // Transform cart items to the format expected by the backend
+        const orderItems = mealItems.map(item => ({
+          mealId: item.id,
+          quantity: item.quantity,
+          price: parseFloat(item.price.replace('$', ''))
+        }));
+        
+        // Split full name into first and last name
+        const nameParts = shippingAddress.fullName.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        // Create order request for backend
+        const orderRequest: CompleteOrderRequest = {
+          totalAmount: total,
+          items: orderItems,
+          shippingAddress: {
+            firstName,
+            lastName,
+            phoneNumber: shippingAddress.phoneNumber,
+            email: shippingAddress.email || '',
+            address: shippingAddress.address,
+            city: shippingAddress.city,
+            postalCode: shippingAddress.postalCode
+          },
+          paymentMethod: selectedPaymentMethod
+        };
+        
+        console.log('Sending order request:', orderRequest);
+        
+        // Complete order via backend
+        const orderResponse = await completeOrder(orderRequest);
+        
+        console.log('Order response received:', orderResponse);
+        
+        // Clear cart only after successful payment
+        clearCart();
+        
+        // Create order details for confirmation page
+        const orderDetails = {
+          orderNumber: orderResponse.orderNumber,
+          items: [...mealItems],
+          subtotal,
+          shipping,
+          tax,
+          total,
+          shippingAddress,
+          paymentMethod: selectedPaymentMethod,
+          estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+          orderDate: new Date()
+        };
+        
+        // Navigate with order details in state
+        navigate('/checkout/confirmation', {
+          state: {
+            order: orderDetails
+          }
+        });
       } else {
         setFormError('No items in cart to complete order');
+        setIsProcessing(false);
         return;
       }
     } catch (error) {
-      console.error('Payment processing error:', error);
-      setFormError(`Payment processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
+      console.error('Payment processing failed:', error);
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Cannot POST')) {
+          setFormError(`API endpoint error: ${error.message}. Please contact support.`);
+        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+          setFormError('Network connection error. Please check your internet connection and try again.');
+        } else {
+          setFormError(`Payment processing failed: ${error.message}`);
+        }
+      } else {
+        setFormError('Payment processing failed. Please try again.');
+      }
+      
       setIsProcessing(false);
     }
   };

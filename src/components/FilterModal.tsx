@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { XIcon } from 'lucide-react';
 type FilterGroup = {
   name: string;
@@ -56,12 +56,19 @@ const FilterModal = ({
                 {group.name}
               </h3>
               <div className="space-y-2">
-                {group.filters.map(filter => <label key={filter} className="flex items-center space-x-3 cursor-pointer group">
-                    <input type="checkbox" checked={tempFilters.includes(filter)} onChange={() => handleCheckboxChange(filter)} className="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 cursor-pointer" />
+                {group.filters.map(filter => (
+                  <label key={filter} className="flex items-center space-x-3 cursor-pointer group">
+                    <input 
+                      type="checkbox" 
+                      checked={tempFilters.includes(filter)} 
+                      onChange={() => handleCheckboxChange(filter)} 
+                      className="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 cursor-pointer" 
+                    />
                     <span className="text-gray-700 group-hover:text-gray-900">
                       {filter}
                     </span>
-                  </label>)}
+                  </label>
+                ))}
               </div>
             </div>)}
         </div>

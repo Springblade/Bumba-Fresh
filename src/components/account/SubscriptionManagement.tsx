@@ -38,9 +38,9 @@ export const SubscriptionManagement = () => {
         setIsLoading(true);
         setError(null);
         
-        console.log('🔄 Fetching subscription data...');
+        console.log(' Fetching subscription data...');
         const response = await getUserSubscription();
-        console.log('✅ Subscription data received:', response);
+        console.log(' Subscription data received:', response);
         
         if (response.subscription) {
           // Transform the data to match component needs
@@ -55,7 +55,7 @@ export const SubscriptionManagement = () => {
           setSubscription(null);
         }
       } catch (err) {
-        console.error('❌ Error fetching subscription:', err);
+        console.error(' Error fetching subscription:', err);
         setError('Failed to load subscription information');
         setSubscription(null);
       } finally {
@@ -164,7 +164,6 @@ export const SubscriptionManagement = () => {
           </div>
         </div>
       </div>
-
       <Dialog isOpen={showCancelDialog} onClose={() => setShowCancelDialog(false)} title="Cancel Subscription" description="Are you sure you want to cancel your subscription? This action cannot be undone.">
         <div className="p-4 bg-error-50 rounded-lg mb-6">
           <div className="flex items-start">

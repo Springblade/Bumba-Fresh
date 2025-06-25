@@ -30,11 +30,6 @@ export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(fa
       // Registration successful, redirect to main page (users always get 'user' role)
       navigate('/');    } catch (error) {
       console.error('SignupForm error:', error);
-      console.log('Error details:', {
-        isValidationError: (error as any).isValidationError,
-        details: (error as any).details,
-        message: error instanceof Error ? error.message : String(error)
-      });
       
       // Handle validation errors from the server
       if ((error as any).isValidationError && (error as any).details) {
@@ -42,7 +37,6 @@ export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(fa
         
         // Map server validation errors to form fields
         (error as any).details.forEach((detail: any) => {
-          console.log('Processing validation detail:', detail);
           const fieldName = detail.path || detail.param;
           const message = detail.msg || detail.message;
           
@@ -51,24 +45,46 @@ export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(fa
           }
         });
         
-        console.log('Mapped validation errors:', validationErrors);
-        
-        // If we have specific field errors, use them; otherwise show general error
+        // If we have specific field errors, use them
         if (Object.keys(validationErrors).length > 0) {
           setErrors(validationErrors);
         } else {
           setErrors({ email: 'Please check your input and try again.' });
         }
       } else {
-        // Handle other types of errors (network, server, etc.)
+        // Handle other types of errors (authentication, network, server, etc.)
         const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
-        setErrors({ email: errorMessage });
+        
+        // Map common error messages to appropriate fields
+        if (errorMessage.toLowerCase().includes('email')) {
+          setErrors({ email: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('password')) {
+          setErrors({ password: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('first name')) {
+          setErrors({ firstName: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('last name')) {
+          setErrors({ lastName: errorMessage });
+        } else {
+          // Default to showing error under email field if we can't determine the specific field
+          setErrors({ 
+            email: errorMessage.includes('Server') || errorMessage.includes('Network') ? '' : errorMessage,
+            general: errorMessage.includes('Server') || errorMessage.includes('Network') ? errorMessage : ''
+          });
+        }
       }
     } finally {
       setIsLoading(false);
     }
   };
-  return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
+      {/* General error display */}
+      {errors.general && (
+        <div className="p-4 rounded-lg bg-error-50 border border-error-200 text-error-700">
+          {errors.general}
+        </div>
+      )}
+      
       <div className="space-y-6">
         <div className="flex gap-x-4">
           <FormField name="firstName" label="First name" type="text" placeholder="First name" icon={<UserIcon />} required error={errors.firstName} className="w-full" />
@@ -118,5 +134,6 @@ export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(fa
           <span className="text-gray-700 font-medium">Apple</span>
         </button>
       </div>
-    </form>;
+    </form>
+  );
 };

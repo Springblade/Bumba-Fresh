@@ -24,9 +24,9 @@ echo.
 echo ✅ Both servers are starting up!
 echo.
 echo 📍 Access Points:
-echo    • Backend API: http://localhost:8000
-echo    • Health Check: http://localhost:8000/health  
-echo    • Frontend App: http://localhost:5173
+echo    • Backend API: http://localhost:8000 (local) or http://192.168.1.4:8000 (network)
+echo    • Health Check: http://localhost:8000/health or http://192.168.1.4:8000/health  
+echo    • Frontend App: http://localhost:5173 (local) or http://192.168.1.4:5173 (network):5173
 echo    • API Test: open test-api-connection.html
 echo.
 echo 💡 Tips:

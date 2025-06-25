@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw as RefreshCwIcon, XCircle as XCircleIcon, Loader2 as Loader2Icon } from 'lucide-react';
+import { RefreshCw as RefreshCwIcon, XCircle as XCircleIcon, Loader2 as Loader2Icon, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Dialog } from '../../../components/ui/Dialog';
 import { useSubscriptionActions } from '../hooks/useSubscriptionActions';
@@ -23,6 +23,7 @@ export const SubscriptionManagement = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showChangePlanWarning, setShowChangePlanWarning] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +83,31 @@ export const SubscriptionManagement = () => {
       setShowCancelDialog(false);
       // Set subscription to null to show empty state
       setSubscription(null);
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('subscriptionCancelled'));
+    }
+  };
+
+  const handleChangePlan = () => {
+    if (subscription && (subscription.status === 'active' || subscription.status === 'paused')) {
+      // Show warning dialog if user has an active or paused subscription
+      setShowChangePlanWarning(true);
+    } else {
+      // Navigate directly if no active subscription
+      navigate('/subscribe');
+    }
+  };
+
+  const handleCancelAndChangePlan = async () => {
+    if (!subscription) return;
+    
+    const success = await cancelSubscription(subscription.plan_id);
+    if (success) {
+      setShowChangePlanWarning(false);
+      setShowCancelDialog(false);
+      // Navigate to subscription page after successful cancellation
+      navigate('/subscribe');
       
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('subscriptionCancelled'));
@@ -151,7 +177,7 @@ export const SubscriptionManagement = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-3">
-                <Button onClick={() => navigate('/subscribe')} variant="outline" disabled={isLoading}>
+                <Button onClick={handleChangePlan} variant="outline" disabled={isLoading}>
                   Change Plan
                 </Button>
                 <Button 
@@ -195,6 +221,33 @@ export const SubscriptionManagement = () => {
                     <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
                     Cancelling...
                   </> : 'Yes, Cancel Subscription'}
+              </Button>
+            </div>
+          </Dialog>
+
+          {/* Change Plan Warning Dialog */}
+          <Dialog isOpen={showChangePlanWarning} onClose={() => setShowChangePlanWarning(false)} title="Change Subscription Plan" description="To change your plan, you must first cancel your current subscription.">
+            <div className="p-4 bg-warning-50 rounded-lg mb-6">
+              <div className="flex items-start">
+                <AlertTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 mr-3" />
+                <div className="text-sm text-warning-700">
+                  <p className="font-medium mb-1">Important:</p>
+                  <p>
+                    You currently have an active <strong>{subscription.plan}</strong> subscription. 
+                    To change to a different plan, you'll need to cancel your current subscription first.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setShowChangePlanWarning(false)} disabled={isLoading}>
+                Return
+              </Button>
+              <Button variant="outline" className="text-error-600 hover:bg-error-50" onClick={handleCancelAndChangePlan} disabled={isLoading}>
+                {isLoading ? <>
+                    <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </> : 'Cancel Plan & Change'}
               </Button>
             </div>
           </Dialog>

@@ -1,5 +1,5 @@
-import React, { useState, Fragment } from 'react';
-import { XIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { X as XIcon } from 'lucide-react';
 import { Button } from './Button';
 interface DialogProps {
   isOpen: boolean;

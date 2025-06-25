@@ -87,7 +87,6 @@ const AdminCustomers: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">            {pagination.currentData.map(customer => (
@@ -108,10 +107,6 @@ const AdminCustomers: React.FC = () => {
                       Non-Subscriber
                     </span>
                   )}
-                </td>                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex gap-2">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                  </div>
                 </td>
               </tr>
             ))}          </tbody>

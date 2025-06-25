@@ -114,7 +114,6 @@ const AdminOrders: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -130,10 +129,6 @@ const AdminOrders: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{order.total}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(order.status)}
-                  </td>                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex gap-2">
-                      <button className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                    </div>
                   </td>
                 </tr>
               ))}

@@ -3,7 +3,6 @@ import { Search, UploadCloud } from 'lucide-react';
 import { AdminMeal } from '../../types/shared';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader';
 import AdminCard from '../../components/admin/ui/AdminCard';
-import AdminConfirmModal from '../../components/admin/ui/AdminConfirmModal';
 import { getAllMeals } from '../../services/meals';
 
 /* 
@@ -12,8 +11,6 @@ import { getAllMeals } from '../../services/meals';
  */
 const AdminMeals: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [mealToDelete, setMealToDelete] = useState<string | null>(null);
   const [meals, setMeals] = useState<AdminMeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,19 +50,6 @@ const AdminMeals: React.FC = () => {
     selectedCategory === 'all' || 
     meal.category.toLowerCase() === selectedCategory.toLowerCase()
   );
-
-  const handleDeleteMeal = (mealId: string) => {
-    setMealToDelete(mealId);
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (mealToDelete) {
-      setMeals(meals.filter(meal => meal.id !== mealToDelete));
-      setDeleteModalOpen(false);
-      setMealToDelete(null);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -177,18 +161,6 @@ const AdminMeals: React.FC = () => {
                 <p>Price: {meal.price}</p>
                 <p>Calories: {meal.calories}</p>
               </div>
-              
-              <div className="mt-4 flex gap-2">
-                <button className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-                  Edit
-                </button>
-                <button 
-                  onClick={() => handleDeleteMeal(meal.id)}
-                  className="flex-1 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
             </div>
           </AdminCard>
         ))}
@@ -205,16 +177,7 @@ const AdminMeals: React.FC = () => {
             }
           </p>
         </div>
-      )}      {/* Delete confirmation modal */}
-      <AdminConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete Meal"
-        message="Are you sure you want to delete this meal? This action cannot be undone."
-        confirmText="Delete"
-        type="danger"
-      />
+      )}
     </div>
   );
 };

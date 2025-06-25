@@ -129,7 +129,8 @@ export function AuthProvider({
       navigate(redirectRoute);
     } catch (error: any) {
       console.error('Login error:', error);
-      throw new Error(error.message || 'Login failed');
+      // Preserve the error structure from the API
+      throw error;
     }
   };
 
@@ -191,7 +192,8 @@ export function AuthProvider({
       navigate(redirectRoute);
     } catch (error: any) {
       console.error('Registration error:', error);
-      throw new Error(error.message || 'Registration failed');
+      // Preserve the error structure from the API
+      throw error;
     }
   };
 

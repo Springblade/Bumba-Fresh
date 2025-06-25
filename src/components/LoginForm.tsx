@@ -50,7 +50,7 @@ export const LoginForm = () => {
           }
         });
         
-        // If we have specific field errors, use them; otherwise show general error
+        // If we have specific field errors, use them
         if (Object.keys(validationErrors).length > 0) {
           setErrors(validationErrors);
         } else {
@@ -58,17 +58,44 @@ export const LoginForm = () => {
         }
       } else {
         // Handle other types of errors (authentication, network, server, etc.)
-        const errorMessage = error instanceof Error ? error.message : 'Invalid email or password';
-        setErrors({ email: errorMessage });
+        const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+        
+        // Map common error messages to appropriate fields
+        if (errorMessage.toLowerCase().includes('email')) {
+          setErrors({ email: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('password')) {
+          setErrors({ password: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('authentication') || 
+                   errorMessage.toLowerCase().includes('credentials') ||
+                   errorMessage.toLowerCase().includes('invalid email or password')) {
+          setErrors({ email: 'Invalid email or password. Please try again.' });
+        } else {
+          // Default to showing error under email field or as general error
+          setErrors({ 
+            email: errorMessage.includes('Server') || errorMessage.includes('Network') ? '' : errorMessage,
+            general: errorMessage.includes('Server') || errorMessage.includes('Network') ? errorMessage : ''
+          });
+        }
       }
     } finally {
       setIsLoading(false);
     }
   };
-  return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
-      {isRegistered && <div className="p-4 rounded-lg bg-success-50 border border-success-200 text-success-700">
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
+      {isRegistered && (
+        <div className="p-4 rounded-lg bg-success-50 border border-success-200 text-success-700">
           Registration successful. Please log in.
-        </div>}
+        </div>
+      )}
+      
+      {/* General error display */}
+      {errors.general && (
+        <div className="p-4 rounded-lg bg-error-50 border border-error-200 text-error-700">
+          {errors.general}
+        </div>
+      )}
+      
       <div className="space-y-6">
         <FormField name="email" label="Email" type="email" placeholder="Email address" icon={<AtSignIcon />} required error={errors.email} />
         <PasswordInput name="password" label="Password" placeholder="Password" required error={errors.password} />
@@ -108,5 +135,6 @@ export const LoginForm = () => {
           <span className="text-gray-700 font-medium">Apple</span>
         </button>
       </div>
-    </form>;
+    </form>
+  );
 };

@@ -187,12 +187,55 @@ class InventoryManager {  /**
     
     try {
       const result = await db.query(query, params);
-        // Transform the results to include proper tags array and other frontend expectations
-      const transformedResults = result.rows.map(row => ({
-        ...row,
-        price: parseFloat(row.price), // Ensure price is a number
-        tags: row.dietary_options ? row.dietary_options.split(',').map(tag => tag.trim()) : ['Fresh', 'Healthy']
-      }));
+      // Transform the results to include proper tags array and other frontend expectations
+      const transformedResults = result.rows.map(row => {
+        // Create realistic tags based on meal category and dietary options
+        let tags = ['Fresh', 'Healthy'];
+        
+        // Add dietary and preference tags based on category
+        if (row.category) {
+          const category = row.category.toLowerCase();
+          if (category.includes('vegetarian')) {
+            tags.push('Vegetarian');
+          }
+          if (category.includes('vegan')) {
+            tags.push('Vegan');
+          }
+          if (category.includes('protein')) {
+            tags.push('High Protein');
+          }
+          if (category.includes('gluten')) {
+            tags.push('Gluten Free');
+          }
+          if (category.includes('spicy')) {
+            tags.push('Spicy');
+          }
+          if (category.includes('mediterranean')) {
+            tags.push('Mediterranean');
+          }
+          if (category.includes('asian')) {
+            tags.push('Asian');
+          }
+          if (category.includes('low') && category.includes('carb')) {
+            tags.push('Low Carb');
+          }
+        }
+        
+        // Add tags from dietary_options if available
+        if (row.dietary_options && typeof row.dietary_options === 'string') {
+          const dietaryTags = row.dietary_options.split(',').map(tag => tag.trim());
+          tags = [...tags, ...dietaryTags];
+        }
+        
+        // Remove duplicates
+        tags = [...new Set(tags)];
+        
+        return {
+          ...row,
+          price: parseFloat(row.price), // Ensure price is a number
+          tags: tags
+        };
+      });
       
       return transformedResults;
     } catch (error) {

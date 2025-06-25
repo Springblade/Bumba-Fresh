@@ -98,10 +98,7 @@ export const SubscriptionManagement = () => {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-6">Manage Subscription</h2>
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="flex items-center justify-center" onClick={() => {}}>
-            <PauseCircleIcon className="w-4 h-4 mr-2" />
-            {subscription.status === 'active' ? 'Pause' : 'Resume'} Subscription
-          </Button>
+          
           <Button variant="outline" className="flex items-center justify-center" onClick={() => {}}>
             <CreditCardIcon className="w-4 h-4 mr-2" />
             Update Payment Method

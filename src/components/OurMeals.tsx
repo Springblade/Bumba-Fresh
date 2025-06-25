@@ -166,18 +166,6 @@ const OurMeals = () => {
           id: 'all',
           label: 'All Meals',
           icon: UtensilsIcon
-        }, {
-          id: 'new',
-          label: 'New',
-          icon: SparklesIcon
-        }, {
-          id: 'popular',
-          label: 'Most Popular',
-          icon: ZapIcon
-        }, {
-          id: 'bestseller',
-          label: 'Bestsellers',
-          icon: LeafIcon
         }]}
           totalResults={totalResults} 
         />

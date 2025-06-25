@@ -1,9 +1,8 @@
-import React, { useCallback, useMemo, useState, Suspense, lazy } from 'react';
+import { useCallback, useMemo, useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle as AlertCircleIcon, Calendar as CalendarIcon, CreditCard as CreditCardIcon, PauseCircle as PauseCircleIcon, RefreshCw as RefreshCwIcon, UtensilsIcon, XCircle as XCircleIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
-import { EmptyState } from '../ui/EmptyState';
 // Lazy load the meal selection component
 const MealSelectionModal = lazy(() => import('../MealSelectionModal'));
 interface Subscription {
@@ -11,11 +10,6 @@ interface Subscription {
   status: 'active' | 'paused' | 'cancelled';
   nextBillingDate: string;
   nextDeliveryDate: string;
-  currentMeals: Array<{
-    id: number;
-    name: string;
-    image: string;
-  }>;
 }
 export const SubscriptionManagement = () => {
   const navigate = useNavigate();
@@ -27,16 +21,7 @@ export const SubscriptionManagement = () => {
     plan: 'Premium Plan',
     status: 'active',
     nextBillingDate: '2024-03-01',
-    nextDeliveryDate: '2024-02-22',
-    currentMeals: [{
-      id: 1,
-      name: 'Grilled Salmon Bowl',
-      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288'
-    }, {
-      id: 2,
-      name: 'Quinoa Buddha Bowl',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd'
-    }]
+    nextDeliveryDate: '2024-02-22'
   }), []);
   const handlePauseSubscription = useCallback(async () => {
     setIsLoading(true);
@@ -121,23 +106,7 @@ export const SubscriptionManagement = () => {
           </div>
         </div>
       </div>
-      {/* Next Week's Meals with lazy loading images */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold">Next Week's Meals</h2>
-          <Button variant="outline" onClick={() => setShowMealSelection(true)} disabled={isLoading}>
-            Change Meals
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {subscription.currentMeals.map(meal => <div key={meal.id} className="border border-gray-200 rounded-lg overflow-hidden">
-              <img src={meal.image} alt={meal.name} className="w-full h-32 object-cover" loading="lazy" />
-              <div className="p-3">
-                <h3 className="font-medium text-sm">{meal.name}</h3>
-              </div>
-            </div>)}
-        </div>
-      </div>
+
       {/* Subscription Actions */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-6">Manage Subscription</h2>
@@ -184,7 +153,7 @@ export const SubscriptionManagement = () => {
         </div>
       </Dialog>
       <Suspense fallback={<div>Loading meal selection...</div>}>
-        {showMealSelection && <MealSelectionModal isOpen={showMealSelection} onClose={() => setShowMealSelection(false)} currentSelections={subscription.currentMeals.map(m => m.name)} onSave={() => {}} mealsPerWeek={3} planName={subscription.plan} />}
+        {showMealSelection && <MealSelectionModal isOpen={showMealSelection} onClose={() => setShowMealSelection(false)} currentSelections={[]} onSave={() => {}} mealsPerWeek={3} planName={subscription.plan} />}
       </Suspense>
     </div>;
 };

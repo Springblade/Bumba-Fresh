@@ -10,10 +10,9 @@ class UserStatsManager {
    * @returns {Promise<Object>} User statistics
    */
   static async getUserStats() {
-    try {
-      const query = `
+    try {      const query = `
         SELECT 
-          COUNT(*) as total_users,
+          COUNT(*) as total_users
         FROM account
         WHERE role = 'user'
       `;
@@ -128,6 +127,52 @@ class UserStatsManager {
       }));
     } catch (error) {
       console.error('Error getting orders:', error);
+      return [];
+    }
+  }
+  /**
+   * Get list of all customers/users
+   * @returns {Promise<Array>} Array of customers
+   */
+  static async getCustomers() {
+    try {
+      const query = `
+        SELECT 
+          a.user_id,
+          a.first_name,
+          a.last_name,
+          a.email,
+          a.phone,
+          a.created_at,
+          p.plan_id IS NOT NULL as has_subscription,
+          COUNT(o.order_id) as order_count,
+          COALESCE(SUM(o.total_price), 0) as total_spent,
+          MAX(o.order_date) as last_order_date
+        FROM account a
+        LEFT JOIN plan p ON a.user_id = p.user_id AND p.time_expired > CURRENT_DATE
+        LEFT JOIN "order" o ON a.user_id = o.user_id
+        WHERE a.role = 'user'
+        GROUP BY a.user_id, a.first_name, a.last_name, a.email, a.phone, a.created_at, p.plan_id
+        ORDER BY a.created_at DESC
+      `;
+      
+      const result = await db.query(query);
+      
+      return result.rows.map(customer => ({
+        id: customer.user_id.toString(),
+        firstName: customer.first_name,
+        lastName: customer.last_name,
+        email: customer.email,
+        phone: customer.phone,
+        subscribed: customer.has_subscription,
+        ordersCount: parseInt(customer.order_count) || 0,
+        totalSpent: parseFloat(customer.total_spent) || 0,
+        joinedDate: new Date(customer.created_at).toLocaleDateString(),
+        lastOrderDate: customer.last_order_date ? new Date(customer.last_order_date).toLocaleDateString() : null,
+        status: 'active' // Default status
+      }));
+    } catch (error) {
+      console.error('Error getting customers:', error);
       return [];
     }
   }

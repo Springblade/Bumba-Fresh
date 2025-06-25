@@ -1,18 +1,11 @@
 import React from 'react';
-import { MessageCircle, Users, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DietitianDashboard: React.FC = () => {
   const navigate = useNavigate();
   
   const statsConfig = [
-    { 
-      label: 'Total clients', 
-      value: '48', 
-      icon: Users, 
-      change: '+8 new',
-      changePositive: true 
-    },
     { 
       label: 'Client Satisfaction', 
       value: '4.9/5', 
@@ -26,20 +19,13 @@ const DietitianDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Dietitian Dashboard
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Welcome back! Here's an overview of your nutrition counseling activities.
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Dietitian Dashboard
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Welcome back! Here's an overview of your nutrition counseling activities.
+          </p>
         </div>
       </div>
       

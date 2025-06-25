@@ -13,7 +13,7 @@ start cmd /k "cd /d %~dp0backend && npm start"
 timeout /t 3 /nobreak > nul
 
 echo 🎨 Starting Frontend Development Server...
-start cmd /k "cd /d %~dp0 && npm run dev"
+start cmd /k "cd /d %~dp0 && npm run dev -- --host"
 timeout /t 2 /nobreak > nul
 
 echo.

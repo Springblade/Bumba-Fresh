@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { BarChart3, Users, ShoppingCart } from 'lucide-react';
 import { useAdminData } from '../../hooks/useAdminData';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader';
@@ -9,29 +8,45 @@ import AdminCard from '../../components/admin/ui/AdminCard';
 /* 
  * CHANGE: Enhanced admin dashboard using reusable components
  * DATE: 21-06-2025
+ * CHANGE: Updated to use real API data instead of hardcoded values
+ * DATE: 25-06-2025
+ * CHANGE: Updated graph to show Jan-May as $0 and June as totalRevenue from database
+ * DATE: 25-06-2025
  */
 const AdminDashboard: React.FC = () => {
   const { stats } = useAdminData();
-  const navigate = useNavigate();
   
+  // Debug logging to see what we're getting from the API
+  console.log('🎯 AdminDashboard - stats object:', stats);
+  console.log('🎯 AdminDashboard - stats.data:', stats.data);
+  console.log('🎯 AdminDashboard - stats.isLoading:', stats.isLoading);
+  console.log('🎯 AdminDashboard - stats.error:', stats.error);
+  
+  /* 
+   * CHANGE: Updated to use real API data instead of hardcoded values
+   * DATE: 25-06-2025
+   */
   const statsConfig = [
     { 
       label: 'Customers', 
-      value: 12,
+      value: stats.data?.activeCustomers || 0,
       icon: Users, 
-      changePositive: true 
+      change: stats.data?.percentChange?.customers ? `${stats.data.percentChange.customers > 0 ? '+' : ''}${stats.data.percentChange.customers}%` : undefined,
+      changePositive: (stats.data?.percentChange?.customers || 0) > 0
     },
     { 
       label: 'Total no. Order', 
-      value: 20,
+      value: stats.data?.ordersThisWeek || 0,
       icon: ShoppingCart, 
-      changePositive: true 
+      change: stats.data?.percentChange?.orders ? `${stats.data.percentChange.orders > 0 ? '+' : ''}${stats.data.percentChange.orders}%` : undefined,
+      changePositive: (stats.data?.percentChange?.orders || 0) > 0
     },
     { 
       label: 'Average Order Value', 
-      value: 57.935,
+      value: stats.data?.averageOrderValue ? `$${stats.data.averageOrderValue.toFixed(2)}` : '$0.00',
       icon: BarChart3, 
-      changePositive: false 
+      change: stats.data?.percentChange?.averageOrder ? `${stats.data.percentChange.averageOrder > 0 ? '+' : ''}${stats.data.percentChange.averageOrder}%` : undefined,
+      changePositive: (stats.data?.percentChange?.averageOrder || 0) > 0
     },
   ];
 
@@ -42,45 +57,18 @@ const AdminDashboard: React.FC = () => {
         description="Overview of your store's performance"
       />
         {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statsConfig.map((stat, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">        {statsConfig.map((stat, i) => (
           <AdminStatCard
             key={i}
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
+            change={stat.change}
             changePositive={stat.changePositive}
             loading={stats.isLoading}
           />
-        ))}
-      </div>
-        {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <AdminCard 
-          title="Recent Orders" 
-          className="lg:col-span-3"
-          action={
-            <button 
-              onClick={() => navigate('/admin/orders')}
-              className="text-sm text-primary-600 hover:text-primary-700"
-            >
-              View All
-            </button>
-          }
-        >
-          {stats.isLoading ? (
-            <div className="animate-pulse space-y-4">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-12 bg-gray-100 rounded"></div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-gray-500 text-center py-8">
-              Order data visualization would go here
-            </div>
-          )}
-        </AdminCard>
-      </div>      {/* Additional Dashboard Widgets */}
+        ))}</div>
+      {/* Additional Dashboard Widgets */}
       <div className="grid grid-cols-1 gap-6">        <AdminCard title="Revenue Over Time">
           <div className="h-64 p-4">
             {/* Simple SVG chart placeholder */}
@@ -96,24 +84,24 @@ const AdminDashboard: React.FC = () => {
               {/* Chart area background */}
               <rect x="40" y="20" width="340" height="160" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
               
-              {/* Sample data points for revenue trend - aligned with months */}
+              {/* Sample data points for revenue trend - Jan to May: 0, Jun: totalRevenue */}
               <polyline
                 fill="none"
                 stroke="#10b981"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                points="70,160 110,140 150,120 190,100 230,80 270,90 310,70 350,60"
+                points="70,180 110,180 150,180 190,180 230,180 270,60"
               />
               
               {/* Data points - properly aligned */}
               {[
-                { x: 70, y: 0, label: 'Jan', value: '' },
-                { x: 110, y: 0, label: 'Feb', value: '' },
-                { x: 150, y: 0, label: 'Mar', value: '' },
-                { x: 190, y: 0, label: 'Apr', value: '' },
-                { x: 230, y: 0, label: 'May', value: '' },
-                { x: 270, y: 150, label: 'Jun', value: '$300' },
+                { x: 70, y: 180, label: 'Jan', value: '$0' },
+                { x: 110, y: 180, label: 'Feb', value: '$0' },
+                { x: 150, y: 180, label: 'Mar', value: '$0' },
+                { x: 190, y: 180, label: 'Apr', value: '$0' },
+                { x: 230, y: 180, label: 'May', value: '$0' },
+                { x: 270, y: 60, label: 'Jun', value: `$${stats.data?.totalRevenue?.toFixed(2) || '0.00'}` },
               ].map((point, index) => (
                 <g key={index}>
                   <circle
@@ -136,14 +124,14 @@ const AdminDashboard: React.FC = () => {
               <text x="230" y="205" fontSize="12" fill="#6b7280" textAnchor="middle">May</text>
               <text x="270" y="205" fontSize="12" fill="#6b7280" textAnchor="middle">Jun</text>
               
-              {/* Y-axis labels - properly positioned */}
-              <text x="35" y="65" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="85" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="105" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="125" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="145" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="165" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
-              <text x="35" y="185" fontSize="12" fill="#6b7280" textAnchor="end">$</text>
+              {/* Y-axis labels - showing revenue scale */}
+              <text x="35" y="65" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.9)}</text>
+              <text x="35" y="85" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.8)}</text>
+              <text x="35" y="105" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.7)}</text>
+              <text x="35" y="125" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.5)}</text>
+              <text x="35" y="145" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.3)}</text>
+              <text x="35" y="165" fontSize="12" fill="#6b7280" textAnchor="end">${Math.round((stats.data?.totalRevenue || 0) * 0.1)}</text>
+              <text x="35" y="185" fontSize="12" fill="#6b7280" textAnchor="end">$0</text>
               
               {/* X and Y axis lines */}
               <line x1="40" y1="180" x2="380" y2="180" stroke="#d1d5db" strokeWidth="1"/>

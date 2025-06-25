@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 import { Search, Check, Clock, Truck, X } from 'lucide-react';
-import { useAdminData } from '../../hooks/useAdminData';
+import { useAdminData, usePagination } from '../../hooks/useAdminData';
 
 /* 
  * CHANGE: Created admin orders management page
  * DATE: 21-06-2025
+ * CHANGE: Updated to use real API data from backend
+ * DATE: 25-06-2025
  */
 const AdminOrders: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const { orders } = useAdminData({ status: filterStatus !== 'all' ? filterStatus : undefined });
+
+  // Filter orders based on search term
+  const filteredOrders = (orders.data || []).filter(order => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      order.id.toString().includes(search) ||
+      order.customer.toLowerCase().includes(search) ||
+      order.email.toLowerCase().includes(search)
+    );
+  });
+
+  // Use pagination hook with 10 items per page
+  const pagination = usePagination(filteredOrders, 10);
 
   // Status badge component
   const getStatusBadge = (status: string) => {
@@ -52,6 +69,8 @@ const AdminOrders: React.FC = () => {
           <input 
             type="text"
             placeholder="Search orders..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full sm:w-64 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
           />
         </div>
@@ -99,7 +118,7 @@ const AdminOrders: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orders.data?.map(order => (
+              {pagination.currentData.map(order => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-primary-600">{order.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -126,15 +145,53 @@ const AdminOrders: React.FC = () => {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-700">
-          Showing <span className="font-medium">1</span> to <span className="font-medium">5</span> of{' '}
-          <span className="font-medium">25</span> orders
+          Showing <span className="font-medium">{pagination.startIndex}</span> to <span className="font-medium">{pagination.endIndex}</span> of{' '}
+          <span className="font-medium">{pagination.totalItems}</span> orders
         </p>
         <div className="flex justify-center space-x-1">
-          <button className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Previous</button>
-          <button className="px-3 py-1 bg-primary-600 text-white border border-primary-600 rounded-md text-sm">1</button>
-          <button className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">2</button>
-          <button className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">3</button>
-          <button className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Next</button>
+          <button 
+            onClick={pagination.goToPrevious}
+            disabled={!pagination.hasPrevious}
+            className={`px-3 py-1 border border-gray-300 rounded-md text-sm ${
+              pagination.hasPrevious 
+                ? 'hover:bg-gray-50 text-gray-700' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Previous
+          </button>
+          
+          {/* Generate page number buttons */}
+          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+            const pageNum = i + 1;
+            const isActive = pageNum === pagination.currentPage;
+            
+            return (
+              <button
+                key={pageNum}
+                onClick={() => pagination.goToPage(pageNum)}
+                className={`px-3 py-1 border rounded-md text-sm ${
+                  isActive
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          
+          <button 
+            onClick={pagination.goToNext}
+            disabled={!pagination.hasNext}
+            className={`px-3 py-1 border border-gray-300 rounded-md text-sm ${
+              pagination.hasNext 
+                ? 'hover:bg-gray-50 text-gray-700' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

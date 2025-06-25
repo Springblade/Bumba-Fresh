@@ -243,69 +243,6 @@ class OrderManager {
       return [];
     }
   }
-
-  /**
-   * Calculate total revenue
-   * @param {Object} filters - Optional date filters
-   * @returns {Promise<number>} Total revenue
-   */
-  static async getTotalRevenue(filters = {}) {
-    let query = `
-      SELECT COALESCE(SUM(total_price), 0) as total_revenue
-      FROM "order" 
-      WHERE status = 'delivered'
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-
-    if (filters.startDate) {
-      paramCount++;
-      query += ` AND order_date >= $${paramCount}`;
-      params.push(filters.startDate);
-    }
-
-    if (filters.endDate) {
-      paramCount++;
-      query += ` AND order_date <= $${paramCount}`;
-      params.push(filters.endDate);
-    }
-    
-    try {
-      const result = await db.query(query, params);
-      return parseFloat(result.rows[0].total_revenue) || 0;
-    } catch (error) {
-      console.error('Error calculating total revenue:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * Get order statistics
-   * @returns {Promise<Object>} Order statistics
-   */
-  static async getOrderStatistics() {
-    const query = `
-      SELECT 
-        COUNT(*) as total_orders,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders,
-        COUNT(CASE WHEN status = 'confirmed' THEN 1 END) as confirmed_orders,
-        COUNT(CASE WHEN status = 'preparing' THEN 1 END) as preparing_orders,
-        COUNT(CASE WHEN status = 'shipped' THEN 1 END) as shipped_orders,
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders,
-        AVG(total_price) as average_order_value
-      FROM "order"
-    `;
-    
-    try {
-      const result = await db.query(query);
-      return result.rows[0];
-    } catch (error) {
-      console.error('Error getting order statistics:', error);
-      return {};
-    }
-  }
 }
 
 module.exports = OrderManager;

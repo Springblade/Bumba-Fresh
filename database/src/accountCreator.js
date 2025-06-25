@@ -117,15 +117,13 @@ class AccountCreator {
       FROM account 
       WHERE email = $1
     `;
-    
-    try {
+      try {
       const result = await db.query(query, [email]);
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return null;
-    }
-  }
+    }  }
 }
 
 module.exports = AccountCreator;

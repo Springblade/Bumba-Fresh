@@ -8,6 +8,7 @@ const LoginManager = require('./loginManager');
 const MealOrderManager = require('./mealOrderManager');
 const OrderManager = require('./orderManager');
 const PlanManager = require('./planManager');
+const UserStatsManager = require('./userStatsManager');
 const ProfileManager = require('./profileManager');
 
 module.exports = {
@@ -20,5 +21,6 @@ module.exports = {
   MealOrderManager,
   OrderManager,
   PlanManager,
+  UserStatsManager,
   ProfileManager
 };

@@ -1,108 +1,151 @@
 import { useCallback, useState } from 'react';
 import { useAsyncData } from './useAsyncData';
+import { fetchData } from '../services/api';
 import { 
   AdminStats, 
   AdminOrder, 
   AdminMeal, 
   AdminCustomer,
-  AdminSubscription 
 } from '../types/shared';
 
 /* 
  * CHANGE: Created admin data hook for fetching and managing admin panel data
  * DATE: 21-06-2025
  */
+
+// Pagination utility function
+export function usePagination<T>(data: T[], itemsPerPage: number = 10) {
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = data.slice(startIndex, endIndex);
+  
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+  
+  const goToPrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const goToNext = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  return {
+    currentData,
+    currentPage,
+    totalPages,
+    totalItems: data.length,
+    itemsPerPage,
+    startIndex: startIndex + 1,
+    endIndex: Math.min(endIndex, data.length),
+    hasNext: currentPage < totalPages,
+    hasPrevious: currentPage > 1,
+    goToPage,
+    goToPrevious,
+    goToNext,
+    setCurrentPage
+  };
+}
+
 interface AdminDataOptions {
   includeInactive?: boolean;
   dateRange?: 'day' | 'week' | 'month' | 'year';
   status?: string;
+  page?: number;
+  limit?: number;
 }
 
 export function useAdminData(options: AdminDataOptions = {}) {
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  
-  // Fetch dashboard stats
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);  // Fetch dashboard stats
   const fetchStats = useCallback(async (): Promise<AdminStats> => {
-    // In a real app, this would be an API call
-    // For now, return mock data
-    const stats: AdminStats = {
-      totalRevenue: 12345.67,
-      activeCustomers: 854,
-      ordersThisWeek: 248,
-      averageOrderValue: 54.67,
-      revenueChange: 12.5,  // Add this property
-      percentChange: {
-        revenue: 12.5,
-        customers: 5.3,
-        orders: 18.2,
-        averageOrder: -2.1
+    try {
+      console.log('🔄 Fetching admin stats from API...');
+      // Try the test endpoint first for debugging
+      let response;
+      try {
+        response = await fetchData<{ stats: any }>('/admin/test-stats');
+        console.log('📊 Using test-stats endpoint - Raw API response:', response);      } catch (testError) {
+        console.log('⚠️ Test endpoint failed, trying regular endpoint:', (testError as Error).message);
+        // Fallback to regular endpoint
+        response = await fetchData<{ stats: any }>('/admin/stats');
+        console.log('📊 Using regular stats endpoint - Raw API response:', response);
       }
-    };
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return stats;
+      
+      const apiStats = response.stats;
+      console.log('📈 Parsed stats:', apiStats);
+      
+      const stats: AdminStats = {
+        totalRevenue: apiStats.totalRevenue || 0,
+        activeCustomers: apiStats.activeCustomers || 0,
+        ordersThisWeek: apiStats.ordersThisWeek || 0,
+        averageOrderValue: apiStats.averageOrderValue || 0,
+        percentChange: {
+          customers: apiStats.percentChange?.customers || 0,
+          orders: apiStats.percentChange?.orders || 0,
+          averageOrder: apiStats.percentChange?.averageOrder || 0
+        }
+      };
+      
+      console.log('✅ Final transformed stats:', stats);
+      return stats;
+    } catch (error) {
+      console.error('❌ Error fetching admin stats:', error);
+      // Return fallback data if API call fails
+      const stats: AdminStats = {        
+        totalRevenue: 0,
+        activeCustomers: 0,
+        ordersThisWeek: 0,
+        averageOrderValue: 0,
+        percentChange: {
+          customers: 0,
+          orders: 0,
+          averageOrder: 0
+        }
+      };
+      return stats;
+    }
   }, [options.dateRange]);
-  
   // Fetch orders with optional filters
   const fetchOrders = useCallback(async (): Promise<AdminOrder[]> => {
-    // In a real app, this would filter based on options
-    const orders: AdminOrder[] = [
-      { 
-        id: 'ORD-1001', 
-        customer: 'John Smith', 
-        email: 'john@example.com',
-        date: '20-06-2025', 
-        total: '$75.50', 
-        status: 'delivered',
-        items: 3
-      },
-      { 
-        id: 'ORD-1002', 
-        customer: 'Emma Wilson', 
-        email: 'emma@example.com',
-        date: '20-06-2025', 
-        total: '$128.25', 
-        status: 'processing',
-        items: 5
-      },
-      { 
-        id: 'ORD-1003', 
-        customer: 'Michael Brown', 
-        email: 'michael@example.com',
-        date: '19-06-2025', 
-        total: '$64.99', 
-        status: 'shipped',
-        items: 2
-      },
-      { 
-        id: 'ORD-1004', 
-        customer: 'Sarah Johnson', 
-        email: 'sarah@example.com',
-        date: '19-06-2025', 
-        total: '$42.75', 
-        status: 'cancelled',
-        items: 1
-      },
-      { 
-        id: 'ORD-1005', 
-        customer: 'Robert Davis', 
-        email: 'robert@example.com',
-        date: '18-06-2025', 
-        total: '$89.50', 
-        status: 'delivered',
-        items: 4
-      },
-    ];
-    
-    // Filter by status if provided
-    const filteredOrders = options.status ? 
-      orders.filter(order => order.status === options.status) : 
-      orders;
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return filteredOrders;
+    try {
+      console.log('🔄 Fetching admin orders from API...');
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      if (options.status && options.status !== 'all') {
+        queryParams.append('status', options.status);
+      }
+      
+      // Try the test endpoint first for debugging
+      let response;
+      try {
+        const testUrl = `/admin/test-orders${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        response = await fetchData<{ orders: AdminOrder[] }>(testUrl);
+        console.log('📦 Using test-orders endpoint - Raw API response:', response);
+      } catch (testError) {
+        console.log('⚠️ Test orders endpoint failed, trying regular endpoint:', (testError as Error).message);
+        // Fallback to regular endpoint
+        const url = `/admin/orders${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        response = await fetchData<{ orders: AdminOrder[] }>(url);
+        console.log('📦 Using regular orders endpoint - Raw API response:', response);
+      }
+      
+      console.log('✅ Final orders data:', response.orders);
+      return response.orders || [];
+    } catch (error) {
+      console.error('❌ Error fetching admin orders:', error);
+      // Return fallback data if API call fails
+      return [];
+    }
   }, [options.status]);
     // Fetch meals with optional filters
   const fetchMeals = useCallback(async (): Promise<AdminMeal[]> => {
@@ -134,96 +177,32 @@ export function useAdminData(options: AdminDataOptions = {}) {
       // Return empty array on error
       return [];
     }
-  }, [options.includeInactive]);
-
-  // Fetch customers
+  }, [options.includeInactive]);  // Fetch customers
   const fetchCustomers = useCallback(async (): Promise<AdminCustomer[]> => {
-    const customers: AdminCustomer[] = [
-      {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Smith',
-        email: 'john@example.com',
-        phone: '555-123-4567',
-        subscribed: true,
-        totalSpent: 350.25,  // Include this property
-        ordersCount: 8,
-        joinedDate: '15-01-2025',
-        status: 'active'
-      },
-      {
-        id: '2',
-        firstName: 'Emma',
-        lastName: 'Wilson',
-        email: 'emma@example.com',
-        subscribed: true,
-        ordersCount: 12,
-        joinedDate: '05-12-2024',
-        totalSpent: 568.25,
-        lastOrderDate: '18-06-2025'
-      },
-      {
-        id: '3',
-        firstName: 'Michael',
-        lastName: 'Brown',
-        email: 'michael@example.com',
-        subscribed: false,
-        ordersCount: 3,
-        joinedDate: '20-03-2025',
-        totalSpent: 124.50
+    try {
+      console.log('🔄 Fetching admin customers from API...');
+      
+      // Try the test endpoint first for debugging
+      let response;
+      try {
+        response = await fetchData<{ customers: AdminCustomer[] }>('/admin/test-customers');
+        console.log('👥 Using test-customers endpoint - Raw API response:', response);
+      } catch (testError) {
+        console.log('⚠️ Test customers endpoint failed, trying regular endpoint:', (testError as Error).message);
+        // Fallback to regular endpoint
+        response = await fetchData<{ customers: AdminCustomer[] }>('/admin/customers');
+        console.log('👥 Using regular customers endpoint - Raw API response:', response);
       }
-    ];
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return customers;
+      
+      console.log('✅ Final customers data:', response.customers);
+      return response.customers || [];
+    } catch (error) {
+      console.error('❌ Error fetching admin customers:', error);
+      // Return empty array if API call fails
+      return [];
+    }
   }, []);
 
-  // Fetch subscriptions
-  const fetchSubscriptions = useCallback(async (): Promise<AdminSubscription[]> => {
-    const subscriptions: AdminSubscription[] = [
-      {
-        id: 'SUB-1',
-        customer: 'John Smith',
-        email: 'john@example.com',
-        plan: 'Family Plan',
-        status: 'active',
-        nextDelivery: '25-06-2025',
-        mealsPerWeek: 12,
-        started: '10-03-2025',
-        startDate: '10-03-2025',
-        interval: 'weekly'
-      },
-      {
-        id: 'SUB-1002',
-        customer: 'Emma Wilson',
-        email: 'emma@example.com', // Add missing email
-        plan: 'Couples Plan',
-        status: 'active',
-        mealsPerWeek: 8, // Add missing mealsPerWeek
-        started: '10-12-2024', // Add missing started
-        startDate: '10-12-2024',
-        nextDelivery: '24-06-2025',
-        billingFrequency: 'weekly',
-        amount: '$64.99'
-      },
-      {
-        id: 'SUB-1003',
-        customer: 'Michael Brown',
-        email: 'michael@example.com', // Add missing email
-        plan: 'Singles Plan',
-        status: 'paused',
-        mealsPerWeek: 5, // Add missing mealsPerWeek
-        started: '20-03-2025', // Add missing started
-        startDate: '20-03-2025',
-        nextDelivery: '05-07-2025',
-        billingFrequency: 'monthly',
-        amount: '$49.99'
-      }
-    ];
-    
-    await new Promise(resolve => setTimeout(resolve, 700));
-    return subscriptions;
-  }, []);
 
   // Update order status
   const updateOrderStatus = useCallback(async (orderId: string, status: string): Promise<boolean> => {
@@ -240,14 +219,12 @@ export function useAdminData(options: AdminDataOptions = {}) {
   const orders = useAsyncData<AdminOrder[]>(fetchOrders, [options.status]);
   const meals = useAsyncData<AdminMeal[]>(fetchMeals, [options.includeInactive]);
   const customers = useAsyncData<AdminCustomer[]>(fetchCustomers, []);
-  const subscriptions = useAsyncData<AdminSubscription[]>(fetchSubscriptions, []);
 
   return {
     stats,
     orders,
     meals,
     customers,
-    subscriptions,
     selectedOrderId,
     setSelectedOrderId,
     updateOrderStatus,

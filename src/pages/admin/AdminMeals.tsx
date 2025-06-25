@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, Search, Filter, UploadCloud } from 'lucide-react';
+import { Search, UploadCloud } from 'lucide-react';
 import { AdminMeal } from '../../types/shared';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader';
 import AdminCard from '../../components/admin/ui/AdminCard';
@@ -11,7 +11,6 @@ import { getAllMeals } from '../../services/meals';
  * DATE: 21-06-2025
  */
 const AdminMeals: React.FC = () => {
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [mealToDelete, setMealToDelete] = useState<string | null>(null);
@@ -103,24 +102,13 @@ const AdminMeals: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <AdminPageHeader 
         title="Meals Management" 
         description="Manage your meal inventory"
-        action={
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Add New Meal
-          </button>
-        }
       />
-      
-      {/* Search and filters */}
+        {/* Search and filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -142,11 +130,6 @@ const AdminMeals: React.FC = () => {
           <option value="dinner">Dinner</option>
           <option value="snack">Snack</option>
         </select>
-        
-        <button className="px-3 py-2 border border-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-50">
-          <Filter className="w-5 h-5" />
-          <span className="hidden sm:inline">More Filters</span>
-        </button>
       </div>
       
       {/* Meals grid */}
@@ -222,17 +205,15 @@ const AdminMeals: React.FC = () => {
             }
           </p>
         </div>
-      )}
-
-      {/* Delete confirmation modal */}
+      )}      {/* Delete confirmation modal */}
       <AdminConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         title="Delete Meal"
-        description="Are you sure you want to delete this meal? This action cannot be undone."
-        confirmButtonText="Delete"
-        confirmButtonVariant="danger"
+        message="Are you sure you want to delete this meal? This action cannot be undone."
+        confirmText="Delete"
+        type="danger"
       />
     </div>
   );

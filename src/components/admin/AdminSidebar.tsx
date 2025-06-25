@@ -5,7 +5,6 @@ import {
   ShoppingBag, 
   Users, 
   UtensilsCrossed, 
-  CalendarRange, 
   Settings, 
   LogOut, 
   ChevronLeft
@@ -15,6 +14,8 @@ import { useAuth } from '../../context/AuthContext';
 /* 
  * CHANGE: Removed duplicate footer from sidebar
  * DATE: 22-06-2025
+ * CHANGE: Removed Subscriptions navigation item (component removed)
+ * DATE: 25-06-2025
  */
 interface AdminSidebarProps {
   collapsed?: boolean;
@@ -26,13 +27,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onToggle 
 }) => {
   const { logout } = useAuth();
-  
-  const navItems = [
+    const navItems = [
     { name: 'Dashboard', icon: <LayoutGrid size={20} />, path: '/admin' },
     { name: 'Orders', icon: <ShoppingBag size={20} />, path: '/admin/orders' },
     { name: 'Customers', icon: <Users size={20} />, path: '/admin/customers' },
     { name: 'Meal Management', icon: <UtensilsCrossed size={20} />, path: '/admin/meals' },
-    { name: 'Subscriptions', icon: <CalendarRange size={20} />, path: '/admin/subscriptions' },
     { name: 'Settings', icon: <Settings size={20} />, path: '/admin/settings' }
   ];
 

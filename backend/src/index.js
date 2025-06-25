@@ -14,6 +14,7 @@ const usersRoutes = require('./routes/users');
 const deliveryRoutes = require('./routes/delivery');
 const favoritesRoutes = require('./routes/favorites');
 const subscriptionRoutes = require('./routes/subscriptions');
+const adminRoutes = require('./routes/admin');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -29,7 +30,7 @@ app.use(compression());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 100 requests per windowMs
+  max: 10000, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
@@ -37,7 +38,7 @@ app.use('/api/', limiter);
 // More strict rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Temporarily increased for testing - Limit each IP to 50 requests per windowMs
+  max: 10000, // Temporarily increased for testing - Limit each IP to 50 requests per windowMs
   message: 'Too many authentication attempts, please try again later.'
 });
 app.use('/api/auth/login', authLimiter);
@@ -95,13 +96,13 @@ app.use('/api/users', usersRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {  res.json({
     message: 'Bumba Fresh API',
     version: '1.0.0',
-    status: 'running',
-    endpoints: {
+    status: 'running',    endpoints: {
       health: '/health',
       auth: '/api/auth',
       meals: '/api/meals',
@@ -111,6 +112,7 @@ app.get('/', (req, res) => {  res.json({
       delivery: '/api/delivery',
       favorites: '/api/favorites',
       subscriptions: '/api/subscriptions'
+      admin: '/api/admin'
     }
   });
 });

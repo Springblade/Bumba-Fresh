@@ -45,7 +45,6 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminMeals = lazy(() => import('./pages/admin/AdminMeals'))
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'))
-const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const DietitianLayout = lazy(() => import('./pages/dietitian/DietitianLayout'))
 const DietitianDashboard = lazy(() => import('./pages/dietitian/DietitianDashboard'))
@@ -208,16 +207,7 @@ export function App() {
                           <AdminCustomers />
                         </Suspense>
                       }
-                    />
-                    <Route
-                      path="subscriptions"
-                      element={
-                        <Suspense fallback={<LoadingFallback />}>
-                          <AdminSubscriptions />
-                        </Suspense>
-                      }
-                    />
-                    <Route
+                    />                    <Route
                       path="settings"
                       element={
                         <Suspense fallback={<LoadingFallback />}>

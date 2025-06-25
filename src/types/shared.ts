@@ -96,12 +96,11 @@ export interface AdminStats {
   activeCustomers: number;
   ordersThisWeek: number;
   averageOrderValue: number;
-  revenueChange?: number;  // Add this property
   percentChange?: {
-    revenue: number;
-    customers: number;
-    orders: number;
-    averageOrder: number;
+    revenue?: number;
+    customers?: number;
+    orders?: number;
+    averageOrder?: number;
   };
 }
 
@@ -111,7 +110,7 @@ export interface AdminOrder {
   email: string;
   date: string;
   total: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending'|'confirmed'|'preparing'|'shipped'|'delivered'|'canceled';
   items: number;
 }
 
@@ -141,41 +140,3 @@ export interface AdminCustomer {
   phone?: string;
 }
 
-export interface AdminSubscription {
-  id: string;
-  customer: string;
-  email: string;
-  plan: string;
-  status: 'active' | 'paused' | 'cancelled';
-  nextDelivery: string;
-  mealsPerWeek: number;
-  started: string;
-  startDate?: string;  // Add startDate property
-  interval?: 'weekly' | 'biweekly' | 'monthly';
-  subscribers?: number;
-  billingFrequency?: 'weekly' | 'monthly';
-  amount?: string;
-}
-
-// Admin User Types
-export interface AdminUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'admin' | 'editor' | 'support';
-  avatar?: string;
-  lastLogin?: string;
-}
-
-// Admin Settings Types
-export interface AdminSiteSettings {
-  siteName: string;
-  contactEmail: string;
-  timezone: string;
-  maintenanceMode: boolean;
-  orderNotifications: boolean;
-  customerNotifications: boolean;
-}
-
-// Add other types as needed

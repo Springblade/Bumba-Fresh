@@ -58,14 +58,27 @@ export interface CompleteOrderResponse {
 }
 
 /**
- * Fetch all orders for the authenticated user
+ * Fetch all orders for the current user
  */
-export async function getUserOrders(): Promise<Order[]> {
+export async function getUserOrders(): Promise<any> {
   try {
-    const response = await fetchData<{ message: string; orders: Order[] }>('/orders');
-    return response.orders || [];
+    console.log('🔄 getUserOrders called');
+    
+    // Try the correct endpoint first
+    try {
+      const response = await fetchData<any>('/orders');
+      console.log('✅ getUserOrders response from /orders:', response);
+      return response;
+    } catch (error) {
+      console.warn('⚠️ Error fetching from /orders, trying /orders/user:', error);
+      
+      // Try alternative endpoint
+      const response = await fetchData<any>('/orders/user');
+      console.log('✅ getUserOrders response from /orders/user:', response);
+      return response;
+    }
   } catch (error) {
-    console.error('Error fetching user orders:', error);
+    console.error('❌ Error in getUserOrders:', error);
     throw error;
   }
 }

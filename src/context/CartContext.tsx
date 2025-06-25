@@ -7,18 +7,19 @@ type MealItem = {
   quantity: number;
   image?: string;
 };
-type SubscriptionItem = {
+export interface SubscriptionItem {
   type: 'subscription';
   planName: string;
   weeks: number;
   mealsByWeek: string[][];
   totalCost: number;
+  billingFrequency: 'weekly' | 'monthly';
 };
 type CartItem = MealItem | SubscriptionItem;
 type CartContextType = {
   items: CartItem[];
   addToCart: (item: Omit<MealItem, 'type' | 'quantity'>) => void;
-  addSubscriptionItem: (item: Omit<SubscriptionItem, 'type'>) => void;
+  addSubscriptionItem: (item: SubscriptionItem) => void;
   removeFromCart: (id: number | string) => void;
   clearCart: () => void;
   cartCount: number;
@@ -77,14 +78,18 @@ export function CartProvider({
       return currentItems;
     });
   };
-  const addSubscriptionItem = (item: Omit<SubscriptionItem, 'type'>) => {
+  const addSubscriptionItem = (item: SubscriptionItem) => {
     setItems(currentItems => {
-      // Remove any existing subscription
-      const filteredItems = currentItems.filter(item => item.type !== 'subscription');
-      // Add the new subscription
+      // Remove any existing subscription items first
+      const filteredItems = currentItems.filter(i => i.type !== 'subscription');
+      
       return [...filteredItems, {
         type: 'subscription',
-        ...item
+        planName: item.planName,
+        weeks: item.weeks,
+        mealsByWeek: item.mealsByWeek,
+        totalCost: item.totalCost,
+        billingFrequency: item.billingFrequency
       }];
     });
   };

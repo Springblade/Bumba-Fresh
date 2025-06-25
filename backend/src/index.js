@@ -13,6 +13,7 @@ const plansRoutes = require('./routes/plans');
 const usersRoutes = require('./routes/users');
 const deliveryRoutes = require('./routes/delivery');
 const favoritesRoutes = require('./routes/favorites');
+const subscriptionRoutes = require('./routes/subscriptions');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -93,6 +94,7 @@ app.use('/api/plans', plansRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/favorites', favoritesRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {  res.json({
@@ -107,7 +109,8 @@ app.get('/', (req, res) => {  res.json({
       plans: '/api/plans',
       users: '/api/users',
       delivery: '/api/delivery',
-      favorites: '/api/favorites'
+      favorites: '/api/favorites',
+      subscriptions: '/api/subscriptions'
     }
   });
 });

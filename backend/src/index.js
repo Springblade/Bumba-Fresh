@@ -47,10 +47,13 @@ app.use('/api/auth/register', authLimiter);
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
+  process.env.FRONTEND_URL_LOCALHOST || 'http://localhost:5173',
+  'http://192.168.1.4:5173', // Network access
   'http://localhost:3000', // Auth test server
   'http://127.0.0.1:3000', // Alternative localhost
   'http://localhost:8080', // Alternative frontend port
-  'null' // For file:// protocol (direct HTML opening)Add commentMore actions
+  'http://192.168.1.4:8080', // Network access alternative port
+  'null' // For file:// protocol (direct HTML opening)
 ];
 
 app.use(cors({

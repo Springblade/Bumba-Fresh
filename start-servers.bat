@@ -20,9 +20,9 @@ echo.
 echo ✅ Both servers should be starting now!
 echo.
 echo 📌 URLs:
-echo - Frontend: http://localhost:5173
-echo - Backend API: http://localhost:8000
-echo - Backend Health: http://localhost:8000/health
+echo - Frontend: http://localhost:5173 (local) or http://192.168.1.4:5173 (network)
+echo - Backend API: http://localhost:8000 (local) or http://192.168.1.4:8000 (network)
+echo - Backend Health: http://localhost:8000/health or http://192.168.1.4:8000/health
 echo.
 echo 🔍 If you see connection errors:
 echo 1. Check that PostgreSQL is running

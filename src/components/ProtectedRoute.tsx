@@ -6,10 +6,12 @@ import { User } from '../types/shared'; // Add the User type import
 interface ProtectedRouteProps {
   children: React.ReactNode;
   isAdminRoute?: boolean;
+  isDietitianRoute?: boolean;
 }
 export const ProtectedRoute = ({
   children,
-  isAdminRoute = false
+  isAdminRoute = false,
+  isDietitianRoute = false
 }: ProtectedRouteProps) => {
   const {
     user,
@@ -17,21 +19,31 @@ export const ProtectedRoute = ({
     isLoading
   } = useAuth();
   const location = useLocation();
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>;
   }
+
   if (!isAuthenticated) {
     // Redirect to login page with return URL
     return <Navigate to={`/auth?next=${encodeURIComponent(location.pathname)}`} replace />;
   }
+
   // For admin routes, check if the user is an admin
-  if (isAdminRoute && !user?.isAdmin) {
+  if (isAdminRoute && user?.role !== 'admin') {
     // Redirect non-admins to the homepage
     return <Navigate to="/" replace />;
   }
-  // User is authenticated (and is admin if required)
+
+  // For dietitian routes, check if the user is a dietitian
+  if (isDietitianRoute && user?.role !== 'dietitian') {
+    // Redirect non-dietitians to the homepage
+    return <Navigate to="/" replace />;
+  }
+
+  // User is authenticated (and has the required role if specified)
   return <>{children}</>;
 };
 

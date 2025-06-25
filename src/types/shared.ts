@@ -46,9 +46,11 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   address?: Address;
   isAdmin?: boolean;  // Add the isAdmin property
-  role?: 'user' | 'admin' | 'support';
+  role?: 'user' | 'admin' | 'dietitian';
+  createdAt?: string;
 }
 
 export interface Address {
@@ -62,9 +64,11 @@ export interface Address {
 export interface ChatMessage {
   id: string;
   content: string;
-  sender: 'user' | 'agent';
+  sender: 'user' | 'agent' | 'dietitian';  // Add 'dietitian' role
   timestamp: Date;
   read: boolean;
+  category?: 'nutrition' | 'general';  // Track message purpose
+  userId?: string;  // Track which user sent the message
 }
 
 export interface ChatState {
@@ -73,18 +77,30 @@ export interface ChatState {
   unreadCount: number;
 }
 
+// Add conversation type for the admin interface
+export interface Conversation {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  unreadCount: number;
+  status: 'active' | 'archived';
+}
+
 // Admin related types
 export interface AdminStats {
   totalRevenue: number;
   activeCustomers: number;
   ordersThisWeek: number;
   averageOrderValue: number;
-  revenueChange?: number;  // Add this property
   percentChange?: {
-    revenue: number;
-    customers: number;
-    orders: number;
-    averageOrder: number;
+    revenue?: number;
+    customers?: number;
+    orders?: number;
+    averageOrder?: number;
   };
 }
 
@@ -94,7 +110,7 @@ export interface AdminOrder {
   email: string;
   date: string;
   total: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending'|'confirmed'|'preparing'|'shipped'|'delivered'|'canceled';
   items: number;
 }
 
@@ -124,41 +140,3 @@ export interface AdminCustomer {
   phone?: string;
 }
 
-export interface AdminSubscription {
-  id: string;
-  customer: string;
-  email: string;
-  plan: string;
-  status: 'active' | 'paused' | 'cancelled';
-  nextDelivery: string;
-  mealsPerWeek: number;
-  started: string;
-  startDate?: string;  // Add startDate property
-  interval?: 'weekly' | 'biweekly' | 'monthly';
-  subscribers?: number;
-  billingFrequency?: 'weekly' | 'monthly';
-  amount?: string;
-}
-
-// Admin User Types
-export interface AdminUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'admin' | 'editor' | 'support';
-  avatar?: string;
-  lastLogin?: string;
-}
-
-// Admin Settings Types
-export interface AdminSiteSettings {
-  siteName: string;
-  contactEmail: string;
-  timezone: string;
-  maintenanceMode: boolean;
-  orderNotifications: boolean;
-  customerNotifications: boolean;
-}
-
-// Add other types as needed

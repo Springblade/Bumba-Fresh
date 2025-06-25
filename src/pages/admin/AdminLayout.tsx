@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { 
   LayoutGrid, 
   ShoppingBag, 
   Users, 
   UtensilsCrossed, 
-  CalendarRange, 
-  Settings, 
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -20,17 +18,13 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
 
   // Redirect if not admin
-  if (!user || !user.isAdmin) {
+  if (!user || user.role !== 'admin') {
     return <Navigate to="/auth" replace />;
-  }
-
-  const navigation = [
+  }  const navigation = [
     { name: 'Dashboard', to: '/admin', icon: LayoutGrid },
     { name: 'Orders', to: '/admin/orders', icon: ShoppingBag },
     { name: 'Customers', to: '/admin/customers', icon: Users },
     { name: 'Meal Management', to: '/admin/meals', icon: UtensilsCrossed },
-    { name: 'Subscriptions', to: '/admin/subscriptions', icon: CalendarRange },
-    { name: 'Settings', to: '/admin/settings', icon: Settings },
   ];
 
   return (

@@ -5,39 +5,68 @@ import { Button } from './ui/Button';
 import { UserIcon, AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
-export const SignupForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
+import { useAuth } from '../context/AuthContext';
+export const SignupForm = () => {  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const { register } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
+
     const formData = new FormData(e.target as HTMLFormElement);
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    // Get existing users or initialize empty array
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    // Check if email already exists
-    if (fakeUsers.some((user: any) => user.email === email)) {
-      setErrors({
-        email: 'Email already registered'
+    const password = formData.get('password') as string;    try {
+      await register({
+        firstName,
+        lastName,
+        email,
+        password
       });
+      
+      // Registration successful, redirect to main page (users always get 'user' role)
+      navigate('/');    } catch (error) {
+      console.error('SignupForm error:', error);
+      console.log('Error details:', {
+        isValidationError: (error as any).isValidationError,
+        details: (error as any).details,
+        message: error instanceof Error ? error.message : String(error)
+      });
+      
+      // Handle validation errors from the server
+      if ((error as any).isValidationError && (error as any).details) {
+        const validationErrors: Record<string, string> = {};
+        
+        // Map server validation errors to form fields
+        (error as any).details.forEach((detail: any) => {
+          console.log('Processing validation detail:', detail);
+          const fieldName = detail.path || detail.param;
+          const message = detail.msg || detail.message;
+          
+          if (fieldName && message) {
+            validationErrors[fieldName] = message;
+          }
+        });
+        
+        console.log('Mapped validation errors:', validationErrors);
+        
+        // If we have specific field errors, use them; otherwise show general error
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        } else {
+          setErrors({ email: 'Please check your input and try again.' });
+        }
+      } else {
+        // Handle other types of errors (network, server, etc.)
+        const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+        setErrors({ email: errorMessage });
+      }
+    } finally {
       setIsLoading(false);
-      return;
     }
-    // Add new user
-    const newUser = {
-      id: Math.random().toString(36).substr(2, 9),
-      fullName: `${firstName} ${lastName}`,
-      email,
-      password
-    };
-    fakeUsers.push(newUser);
-    localStorage.setItem('fakeUsers', JSON.stringify(fakeUsers));
-    setIsLoading(false);
-    navigate('/auth?registered=1');
   };
   return <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md mx-auto">
       <div className="space-y-6">

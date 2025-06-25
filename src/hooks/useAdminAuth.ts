@@ -16,7 +16,7 @@ export function useAdminAuth() {
   const { user } = useAuth();
   
   // Check if user has admin role
-  const isAdmin = Boolean(user?.isAdmin);
+  const isAdmin = Boolean(user?.role === 'admin');
   
   /**
    * Checks if the current user has a specific admin permission

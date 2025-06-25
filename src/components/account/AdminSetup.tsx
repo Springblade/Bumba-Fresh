@@ -16,7 +16,7 @@ const AdminSetup: React.FC = () => {
   
   // If user is already admin, redirect to admin dashboard
   React.useEffect(() => {
-    if (user?.isAdmin) {
+    if (user?.role === 'admin') {
       navigate('/admin');
     }
   }, [user, navigate]);

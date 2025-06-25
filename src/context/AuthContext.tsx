@@ -1,6 +1,24 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '../types/shared'; // Make sure User is imported
+import { User } from '../types/shared';
+import { fetchData } from '../services/api';
+import { setAuthToken, getCurrentUser, setCurrentUser, clearAuth } from '../services/auth';
+
+// Helper function to determine redirect route based on user role
+export const getRedirectRoute = (user: User | null, fallback: string = '/'): string => {
+  if (!user) return fallback;
+  
+  switch (user.role) {
+    case 'admin':
+      return '/admin'; // This will show AdminDashboard as it's the index route
+    case 'dietitian':
+      return '/dietitian'; // This will show DietitianMessaging as it's the index route
+    case 'user':
+    default:
+      return fallback;
+  }
+};
+
 export interface Address {
   street: string;
   city: string;
@@ -8,18 +26,28 @@ export interface Address {
   zip: string;
   country: string;
 }
+
 export interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean; // Make sure this is defined
+  isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    address?: string;
+  }) => Promise<void>;
   logout: () => void;
   updateUserAddress: (newAddress: Address) => void;
-
-  // New admin-specific method
+  updateUserProfile: (profileData: { firstName: string; lastName: string }) => void;
   setupAdminAccount: (adminKey: string) => Promise<boolean>;
 }
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export function AuthProvider({
   children
 }: {
@@ -28,141 +56,206 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
   useEffect(() => {
-    const authToken = localStorage.getItem('authToken');
-    const currentUser = localStorage.getItem('currentUser');
-    if (authToken && currentUser) {
-      try {
-        const userData = JSON.parse(currentUser);
-        // Verify the user exists in fakeUsers
-        const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-        const isValidUser = fakeUsers.some((u: any) => u.email === userData.email);
-        if (!isValidUser) {
-          throw new Error('Invalid user');
-        }
-        setUser(userData);
-      } catch (e) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
-        setUser(null);
-        const protectedRoutes = ['/cart', '/checkout', '/payment'];
-        if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
-          navigate('/auth');
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      const storedUser = getCurrentUser();
+      
+      if (token && storedUser) {
+        try {
+          // Verify token with backend
+          await fetchData<{ user: any }>('/auth/verify');
+          setUser(storedUser);
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          clearAuth();
+          setUser(null);
+          const protectedRoutes = ['/cart', '/checkout', '/payment', '/account'];
+          if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
+            navigate('/auth');
+          }
         }
       }
-    }
-    setIsLoading(false);
-  }, [navigate]);
-  const updateUserAddress = (newAddress: Address) => {
-    if (!user) return;
-    const updatedUser = {
-      ...user,
-      address: newAddress
+      setIsLoading(false);
     };
-    setUser(updatedUser);
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-  };
-  const login = async (email: string, password: string) => {
-    const fakeUsers = JSON.parse(localStorage.getItem('fakeUsers') || '[]');
-    const foundUser = fakeUsers.find((u: any) => u.email === email && u.password === password);
-    if (!foundUser) {
-      throw new Error('Invalid credentials');
-    }
-    // Get stored address if it exists
-    const currentUser = localStorage.getItem('currentUser');
-    const existingAddress = currentUser ? JSON.parse(currentUser).address : undefined;
-    const userData = {
-      id: foundUser.id || Math.random().toString(36).substr(2, 9),
-      email: foundUser.email,
-      firstName: foundUser.fullName.split(' ')[0],
-      lastName: foundUser.fullName.split(' ')[1] || '',
-      address: existingAddress
-    };
-    localStorage.setItem('authToken', Math.random().toString(36).substr(2));
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    setUser(userData);
-  };
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    setUser(null);
-    navigate('/auth');
-  };
-  // Make sure isAuthenticated is calculated based on user existence
-  const isAuthenticated = !!user;
 
-  // Add the new admin setup function
+    checkAuth();
+  }, [navigate]);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await fetchData<{
+        message: string;
+        user: {
+          id: number;
+          email: string;
+          firstName: string;
+          lastName: string;
+          role: string;
+          address?: Address;
+          phone?: string;
+        };
+        token: string;
+      }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      console.log('Login response:', response);
+
+      // Ensure we have all required user data
+      const userData: User = {
+        id: response.user.id.toString(),
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        role: response.user.role,
+        address: response.user.address,
+        phone: response.user.phone,
+        createdAt: new Date().toISOString(),
+      };
+
+      setAuthToken(response.token);
+      setCurrentUser(userData);
+      setUser(userData);
+
+      // Navigate based on role
+      const redirectRoute = getRedirectRoute(userData, '/');
+      console.log('Redirecting to:', redirectRoute);
+      navigate(redirectRoute);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed');
+    }
+  };
+
+  const register = async (userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    address?: string;
+  }) => {
+    try {
+      const response = await fetchData<{
+        message: string;
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          role: string;
+          phone?: string;
+          address?: string;
+        };
+        token: string;
+      }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: userData.email,
+          password: userData.password,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          address: userData.address,
+        }),
+      });
+
+      console.log('Register response:', response);
+
+      // Ensure we have all required user data
+      const newUser: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        role: response.user.role,
+        phone: response.user.phone,
+        address: typeof response.user.address === 'string' 
+          ? undefined 
+          : response.user.address as Address,
+        createdAt: new Date().toISOString(),
+      };
+
+      setAuthToken(response.token);
+      setCurrentUser(newUser);
+      setUser(newUser);
+
+      // Navigate based on role
+      const redirectRoute = getRedirectRoute(newUser, '/');
+      navigate(redirectRoute);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw new Error(error.message || 'Registration failed');
+    }
+  };
+
+  const logout = () => {
+    clearAuth();
+    setUser(null);
+    navigate('/');
+  };
+
+  const updateUserAddress = (newAddress: Address) => {
+    if (user) {
+      const updatedUser = { ...user, address: newAddress };
+      setUser(updatedUser);
+      setCurrentUser(updatedUser);
+    }
+  };
+
+  const updateUserProfile = (profileData: { firstName: string; lastName: string }) => {
+    if (user) {
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      setCurrentUser(updatedUser);
+    }
+  };
+
   const setupAdminAccount = async (adminKey: string): Promise<boolean> => {
     try {
-      // Normalize the input by trimming whitespace
-      const normalizedKey = adminKey.trim();
-      // Use exact string comparison with the expected key
-      const expectedKey = 'bumba-admin-2025';
-      
-      console.log('Key validation:', normalizedKey === expectedKey);
-      
-      if (normalizedKey !== expectedKey) {
-        return false;
-      }
-      
-      if (!user) {
-        console.log('No user logged in');
-        return false;
-      }
-      
-      // Create updated user with admin privileges
-      const adminUser = {
-        ...user,
-        isAdmin: true
-      };
-      
-      // Update in localStorage
-      localStorage.setItem('currentUser', JSON.stringify(adminUser));
-      
-      // Also update in fakeUsers array if it exists
-      try {
-        const storedUsers = localStorage.getItem('fakeUsers');
-        if (storedUsers) {
-          const users = JSON.parse(storedUsers);
-          const updatedUsers = users.map((u: any) => 
-            u.email === user.email ? { ...u, isAdmin: true } : u
-          );
-          localStorage.setItem('fakeUsers', JSON.stringify(updatedUsers));
-        }
-      } catch (err) {
-        // Non-critical error, continue
-        console.log('Could not update users array');
-      }
-      
-      // Update state
-      setUser(adminUser);
-      
+      const response = await fetchData<{ message: string }>('/auth/setup-admin', {
+        method: 'POST',
+        body: JSON.stringify({ adminKey }),
+      });
+      console.log('Admin setup response:', response);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Admin setup error:', error);
       return false;
     }
   };
-  
-  // Include the function in your context value
-  const value = {
-    user,
-    isAuthenticated,
-    isLoading,
-    login,
-    logout,
-    updateUserAddress,
-    setupAdminAccount,
-  };
 
-  return <AuthContext.Provider value={value}>
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        register,
+        logout,
+        updateUserAddress,
+        updateUserProfile,
+        setupAdminAccount,
+      }}
+    >
       {children}
-    </AuthContext.Provider>;
+    </AuthContext.Provider>
+  );
 }
-export function useAuth() {
+
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
+
+export default AuthContext;

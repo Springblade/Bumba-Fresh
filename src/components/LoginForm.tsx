@@ -4,7 +4,7 @@ import { PasswordInput } from './ui/PasswordInput';
 import { Button } from './ui/Button';
 import { AtSignIcon } from 'lucide-react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, getRedirectRoute } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,10 +18,11 @@ export const LoginForm = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const isRegistered = searchParams.get('registered') === '1';
-  const next = searchParams.get('next') || '/';
-  useEffect(() => {
+  const next = searchParams.get('next') || '/';  useEffect(() => {
     if (!authLoading && user) {
-      navigate(next);
+      // Use role-based redirection, with 'next' parameter as fallback for regular users
+      const redirectRoute = getRedirectRoute(user, next);
+      navigate(redirectRoute);
     }
   }, [user, authLoading, navigate, next]);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,13 +31,36 @@ export const LoginForm = () => {
     setErrors({});
     const formData = new FormData(e.target as HTMLFormElement);
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    try {
+    const password = formData.get('password') as string;    try {
       await login(email, password);
     } catch (error) {
-      setErrors({
-        email: 'Invalid email or password'
-      });
+      console.error('LoginForm error:', error);
+      
+      // Handle validation errors from the server
+      if ((error as any).isValidationError && (error as any).details) {
+        const validationErrors: Record<string, string> = {};
+        
+        // Map server validation errors to form fields
+        (error as any).details.forEach((detail: any) => {
+          const fieldName = detail.path || detail.param;
+          const message = detail.msg || detail.message;
+          
+          if (fieldName && message) {
+            validationErrors[fieldName] = message;
+          }
+        });
+        
+        // If we have specific field errors, use them; otherwise show general error
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors);
+        } else {
+          setErrors({ email: 'Please check your credentials and try again.' });
+        }
+      } else {
+        // Handle other types of errors (authentication, network, server, etc.)
+        const errorMessage = error instanceof Error ? error.message : 'Invalid email or password';
+        setErrors({ email: errorMessage });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,9 +1,49 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SignupForm } from '../components/SignupForm';
 import { LoginForm } from '../components/LoginForm';
 import { SparklesIcon, ArrowRightIcon, ArrowLeftIcon } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  // Role-based redirection for already logged-in users (only when on auth page)
+  useEffect(() => {
+    console.log('AuthPage useEffect triggered:', { 
+      user: user?.email, 
+      role: user?.role,
+      isLoading, 
+      pathname: window.location.pathname 
+    });
+    
+    // Only redirect if we're actually on the auth page and user is logged in
+    const currentPath = window.location.pathname;
+    if (!isLoading && user && currentPath === '/auth') {
+      console.log('AuthPage: User already logged in on auth page, implementing role-based redirection');
+      
+      // Role-based redirection as per Authorization.md requirements
+      switch (user.role) {
+        case 'admin':
+          console.log('AuthPage: Redirecting admin to /admin');
+          navigate('/admin');
+          break;
+        case 'dietitian':
+          console.log('AuthPage: Redirecting dietitian to /dietitian');
+          navigate('/dietitian');
+          break;
+        case 'user':
+        default:
+          // Handle redirect parameter for users or default to home
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTo = urlParams.get('redirect') || '/';
+          console.log('AuthPage: Redirecting user to:', redirectTo);
+          navigate(redirectTo);
+          break;
+      }
+    }
+  }, [user, isLoading, navigate]);
   return <main className="min-h-screen w-full flex items-center justify-center p-4 md:p-6 relative">
       {/* Keep only the dot pattern as a unique overlay */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.03)_1px,transparent_0)] bg-[size:32px_32px] pointer-events-none opacity-70" />

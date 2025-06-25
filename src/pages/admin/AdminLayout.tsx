@@ -18,7 +18,7 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
 
   // Redirect if not admin
-  if (!user || !user.isAdmin) {
+  if (!user || user.role !== 'admin') {
     return <Navigate to="/auth" replace />;
   }  const navigation = [
     { name: 'Dashboard', to: '/admin', icon: LayoutGrid },

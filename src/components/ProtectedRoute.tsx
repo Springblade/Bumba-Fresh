@@ -32,7 +32,7 @@ export const ProtectedRoute = ({
   }
 
   // For admin routes, check if the user is an admin
-  if (isAdminRoute && !user?.isAdmin) {
+  if (isAdminRoute && user?.role !== 'admin') {
     // Redirect non-admins to the homepage
     return <Navigate to="/" replace />;
   }

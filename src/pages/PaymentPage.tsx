@@ -8,7 +8,7 @@ import { OrderSummary } from '../components/checkout/OrderSummary';
 import { Button } from '../components/ui/Button';
 import { ShippingForm } from '../components/checkout/ShippingForm';
 import { completeOrder, CompleteOrderRequest } from '../services/orders';
-import { createSubscription } from '../services/subscriptions';
+import { createSubscription, getUserSubscription } from '../services/subscriptions';
 
 type CheckoutStep = 'shipping' | 'payment';
 type PaymentMethod = 'credit-card' | 'paypal';
@@ -53,6 +53,27 @@ const PaymentPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
+
+  // Check for active subscription before processing
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      // Only check if cart has subscription items
+      const subscriptionItems = items.filter(item => item.type === 'subscription');
+      if (subscriptionItems.length === 0) return;
+
+      try {
+        const response = await getUserSubscription();
+        if (response.subscription && response.subscription.status === 'active') {
+          // User has active subscription, redirect to manage subscription page
+          navigate('/account/subscription');
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      }
+    };
+
+    checkActiveSubscription();
+  }, [items, navigate]);
   
   // Calculate order totals
   const subtotal = items.reduce((sum, item) => {

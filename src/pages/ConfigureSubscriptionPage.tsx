@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckIcon, ChevronRightIcon, AlertCircleIcon, XIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import GradientText from '../components/GradientText';
 import { getAllMeals, Meal } from '../services/meals';
+import { getUserSubscription } from '../services/subscriptions';
 import { plans } from '../data/subscriptionPlans';
 
 // Types
@@ -26,6 +28,7 @@ const ConfigureSubscriptionPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addSubscriptionItem } = useCart();
+  const { user, isAuthenticated } = useAuth();
   
   const planName = searchParams.get('plan');
   const billingFrequency = searchParams.get('billing') || 'weekly';
@@ -55,6 +58,8 @@ const ConfigureSubscriptionPage = () => {
   });
   const [meals, setMeals] = useState<DisplayMeal[]>([]);
   const [isLoadingMeals, setIsLoadingMeals] = useState(true);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
   // Fetch meals from API
   useEffect(() => {
     const fetchMeals = async () => {
@@ -85,11 +90,60 @@ const ConfigureSubscriptionPage = () => {
     fetchMeals();
   }, []);
 
+  // Check for active subscription
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      if (!isAuthenticated || !user) {
+        setIsCheckingSubscription(false);
+        return;
+      }
+
+      try {
+        setIsCheckingSubscription(true);
+        const response = await getUserSubscription();
+        
+        if (response.subscription && response.subscription.status === 'active') {
+          setHasActiveSubscription(true);
+        } else {
+          setHasActiveSubscription(false);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setHasActiveSubscription(false);
+      } finally {
+        setIsCheckingSubscription(false);
+      }
+    };
+
+    checkActiveSubscription();
+  }, [isAuthenticated, user]);
+
   useEffect(() => {
     if (!planName) {
       navigate('/subscribe');
     }
   }, [planName, navigate]);
+
+  // Check for active subscription
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      if (!isAuthenticated || !user) {
+        return;
+      }
+
+      try {
+        const response = await getUserSubscription();
+        if (response.subscription && response.subscription.status === 'active') {
+          // User has active subscription, redirect to manage subscription page
+          navigate('/account/subscription');
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      }
+    };
+
+    checkActiveSubscription();
+  }, [isAuthenticated, user, navigate]);
 
   // Handlers
   const handleMealSelection = (week: Week, mealId: number) => {
@@ -150,6 +204,57 @@ const ConfigureSubscriptionPage = () => {
   const isAllWeeksComplete = planDetails ? 
     Object.values(selectedMeals).every(meals => meals.length === planDetails.mealsPerWeek) : 
     false;
+
+  // Show loading state while checking subscription
+  if (isCheckingSubscription) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-4"></div>
+            <p className="text-gray-600">Checking subscription status...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show warning if user has active subscription
+  if (hasActiveSubscription) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <div className="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircleIcon className="w-8 h-8 text-warning-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Active Subscription Found
+              </h1>
+              <p className="text-gray-600 mb-8">
+                You already have an active subscription. To change your plan, please cancel your current subscription first.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  onClick={() => navigate('/account/subscription')} 
+                  variant="primary"
+                >
+                  Manage Subscription
+                </Button>
+                <Button 
+                  onClick={() => navigate('/subscribe')} 
+                  variant="outline"
+                >
+                  View Plans
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">

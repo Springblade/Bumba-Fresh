@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle as AlertCircleIcon, RefreshCw as RefreshCwIcon, XCircle as XCircleIcon } from 'lucide-react';
+import { AlertCircle as AlertCircleIcon, AlertTriangle as AlertTriangleIcon, RefreshCw as RefreshCwIcon, XCircle as XCircleIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { EmptyState } from '../ui/EmptyState';
@@ -21,6 +21,7 @@ export const SubscriptionManagement = () => {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToasts();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showChangePlanWarning, setShowChangePlanWarning] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -96,6 +97,50 @@ export const SubscriptionManagement = () => {
     }
   };
 
+  const handleChangePlan = () => {
+    if (subscription && (subscription.status === 'active' || subscription.status === 'paused')) {
+      // Show warning dialog if user has an active or paused subscription
+      setShowChangePlanWarning(true);
+    } else {
+      // Navigate directly if no active subscription
+      navigate('/subscribe');
+    }
+  };
+
+  const handleCancelAndChangePlan = async () => {
+    if (!subscription) return;
+
+    setIsActionLoading(true);
+    try {
+      await cancelSubscription(subscription.plan_id);
+      
+      toast({
+        title: 'Subscription Cancelled',
+        description: 'Your subscription has been cancelled successfully. You can now select a new plan.',
+        type: 'success'
+      });
+      
+      setShowChangePlanWarning(false);
+      setShowCancelDialog(false);
+      setSubscription(null); // Remove subscription to show empty state
+      
+      // Navigate to subscription page after successful cancellation
+      navigate('/subscribe');
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('subscriptionCancelled'));
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to cancel subscription. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -149,7 +194,7 @@ export const SubscriptionManagement = () => {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => navigate('/subscribe')} variant="outline" disabled={isActionLoading}>
+            <Button onClick={handleChangePlan} variant="outline" disabled={isActionLoading}>
               Change Plan
             </Button>
             <Button 
@@ -184,6 +229,30 @@ export const SubscriptionManagement = () => {
           </Button>
           <Button variant="outline" className="text-error-600 hover:bg-error-50" onClick={handleCancelSubscription} disabled={isActionLoading}>
             {isActionLoading ? 'Cancelling...' : 'Yes, Cancel Subscription'}
+          </Button>
+        </div>
+      </Dialog>
+      
+      {/* Change Plan Warning Dialog */}
+      <Dialog isOpen={showChangePlanWarning} onClose={() => setShowChangePlanWarning(false)} title="Change Subscription Plan" description="To change your plan, you must first cancel your current subscription.">
+        <div className="p-4 bg-warning-50 rounded-lg mb-6">
+          <div className="flex items-start">
+            <AlertTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 mr-3" />
+            <div className="text-sm text-warning-700">
+              <p className="font-medium mb-1">Important:</p>
+              <p>
+                You currently have an active <strong>{subscription?.plan}</strong> subscription. 
+                To change to a different plan, you'll need to cancel your current subscription first.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => setShowChangePlanWarning(false)} disabled={isActionLoading}>
+            Return
+          </Button>
+          <Button variant="outline" className="text-error-600 hover:bg-error-50" onClick={handleCancelAndChangePlan} disabled={isActionLoading}>
+            {isActionLoading ? 'Cancelling...' : 'Cancel Plan & Change'}
           </Button>
         </div>
       </Dialog>

@@ -1,14 +1,55 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlanCard } from '../components/subscription/PlanCard';
 import WhySubscribe from '../components/subscription/WhySubscribe';
 import FAQ from '../components/subscription/FAQ';
 import GradientText from '../components/GradientText';
 import { plans } from '../data/subscriptionPlans';
+import { useAuth } from '../context/AuthContext';
+import { getUserSubscription } from '../services/subscriptions';
+import { Dialog } from '../components/ui/Dialog';
+import { Button } from '../components/ui/Button';
+import { AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 const SubscriptionPage = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [showActiveSubscriptionDialog, setShowActiveSubscriptionDialog] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  // Check for active subscription on component mount
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      if (!isAuthenticated || !user) {
+        return;
+      }
+
+      try {
+        const response = await getUserSubscription();
+        if (response.subscription && response.subscription.status === 'active') {
+          setHasActiveSubscription(true);
+        } else {
+          setHasActiveSubscription(false);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setHasActiveSubscription(false);
+      }
+    };
+
+    checkActiveSubscription();
+  }, [isAuthenticated, user]);
+
   const handleSelectPlan = (planName: string) => {
+    if (hasActiveSubscription) {
+      setShowActiveSubscriptionDialog(true);
+      return;
+    }
     navigate(`/configure-subscription?plan=${encodeURIComponent(planName)}`);
+  };
+
+  const handleProceedToManageSubscription = () => {
+    setShowActiveSubscriptionDialog(false);
+    navigate('/account/subscription');
   };
   return <div className="min-h-screen">
       {/* Hero Section */}
@@ -44,6 +85,34 @@ const SubscriptionPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Active Subscription Dialog */}
+      <Dialog 
+        isOpen={showActiveSubscriptionDialog} 
+        onClose={() => setShowActiveSubscriptionDialog(false)} 
+        title="Active Subscription Found" 
+        description="You already have an active subscription. To change your plan, please manage your current subscription first."
+      >
+        <div className="p-4 bg-warning-50 rounded-lg mb-6">
+          <div className="flex items-start">
+            <AlertTriangleIcon className="w-5 h-5 text-warning-600 mt-0.5 mr-3" />
+            <div className="text-sm text-warning-700">
+              <p className="font-medium mb-1">Cannot Subscribe to Multiple Plans</p>
+              <p>
+                You can only have one active subscription at a time. Please cancel or manage your current subscription before selecting a new plan.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => setShowActiveSubscriptionDialog(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleProceedToManageSubscription}>
+            Manage Current Subscription
+          </Button>
+        </div>
+      </Dialog>
     </div>;
 };
 export default SubscriptionPage;

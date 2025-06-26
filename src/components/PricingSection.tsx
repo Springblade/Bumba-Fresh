@@ -1,7 +1,8 @@
-import React, { useState, memo, Component } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { getUserSubscription } from '../services/subscriptions';
 import { plans } from '../features/subscription/data/plans';
 import { BillingToggle } from '../features/subscription/components/BillingToggle';
 import { PricingHeader } from '../features/subscription/components/PricingHeader';
@@ -14,12 +15,47 @@ const PricingSection = () => {
   } = useSubscription();
   const navigate = useNavigate();
   const {
-    user
+    user,
+    isAuthenticated
   } = useAuth();
   const {
     hasSubscription
   } = useCart();
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  // Check for active subscription
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      if (!isAuthenticated || !user) {
+        setHasActiveSubscription(false);
+        return;
+      }
+
+      try {
+        const response = await getUserSubscription();
+        if (response.subscription && response.subscription.status === 'active') {
+          setHasActiveSubscription(true);
+        } else {
+          setHasActiveSubscription(false);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setHasActiveSubscription(false);
+      }
+    };
+
+    checkActiveSubscription();
+  }, [isAuthenticated, user]);
+
   const handleSelectPlan = (planName: string) => {
+    // Check for active subscription first
+    if (hasActiveSubscription) {
+      alert('You already have an active subscription. Please cancel or manage your current subscription before selecting a new plan.');
+      navigate('/account/subscription');
+      return;
+    }
+
+    // Check for subscription in cart
     if (hasSubscription()) {
       alert('You already have a subscription in your cart. Please modify it there.');
       navigate('/cart');
